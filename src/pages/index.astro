@@ -1,0 +1,301 @@
+---
+import { getCollection, getEntry, render } from 'astro:content';
+import Shell from '../layouts/Shell.astro';
+import Timeline from '../components/Timeline.astro';
+import ProjectPreviewCard from '../components/ProjectPreviewCard.astro';
+import NotePreviewRow from '../components/NotePreviewRow.astro';
+import Workbench from '../components/Workbench.astro';
+import TechStack from '../components/TechStack.astro';
+import ContactLinks from '../components/ContactLinks.astro';
+import TableOfContents from '../components/TableOfContents.svelte';
+import ScrollToTop from '../components/ScrollToTop.svelte';
+import { getProjectsPreview } from '../lib/projectsPreview';
+import { getNotesPreview } from '../lib/notesPreview';
+import { withBase } from '../lib/withBase';
+
+const framingEntries = await getCollection('framing');
+const framing = framingEntries[0];
+const { Content } = await render(framing);
+
+const projects = await getCollection('projects');
+const projectsPreview = getProjectsPreview(projects);
+
+const notes = await getCollection('notes');
+const notesPreview = getNotesPreview(notes);
+const notesPreviewLinkedProject = notesPreview?.data.linkedProject
+  ? await getEntry(notesPreview.data.linkedProject)
+  : null;
+
+const workbench = framing.data.workbench;
+const hasWorkbench = workbench && Object.values(workbench).some(Boolean);
+
+const techStack = framing.data.techStack;
+const hasTechStack = techStack && techStack.length > 0;
+
+// Section labels: each one is computed once here (content override, else
+// the existing hardcoded default) and reused for both the section's own
+// <h2> and the Hub TOC entry below, so the label text never lives as a
+// literal string in two places. Hero header excluded — it's page identity,
+// not a section (Hub Surface Definition).
+const timelineLabel = framing.data.sectionLabels?.timeline ?? 'Timeline';
+const projectsLabel = framing.data.sectionLabels?.projects ?? 'Projects';
+const notesLabel = framing.data.sectionLabels?.notes ?? 'Notes';
+const workbenchLabel = framing.data.sectionLabels?.workbench ?? 'Workbench';
+const techStackLabel = framing.data.sectionLabels?.techStack ?? 'Tech Stack';
+const contactLabel = framing.data.sectionLabels?.contact ?? 'Contact';
+
+// Mirrors the sections actually rendered below — a section omitted for
+// having no preview content is likewise omitted from the TOC, so the TOC
+// never links to an empty anchor.
+const hubSections = [
+  { slug: 'timeline', text: timelineLabel },
+  ...(projectsPreview ? [{ slug: 'projects', text: projectsLabel }] : []),
+  ...(notesPreview ? [{ slug: 'notes', text: notesLabel }] : []),
+  ...(hasWorkbench ? [{ slug: 'workbench', text: workbenchLabel }] : []),
+  ...(hasTechStack ? [{ slug: 'tech-stack', text: techStackLabel }] : []),
+  { slug: 'contact', text: contactLabel },
+];
+---
+
+<Shell title="Hub" wide>
+  <div class="hub-layout">
+    <aside class="hub-toc-rail" aria-label="Page navigation">
+      <TableOfContents client:load sections={hubSections} />
+    </aside>
+
+    <div class="hub-main">
+      <header class="framing-header">
+        <h1 class="framing-name">{framing.data.name}</h1>
+        <p class="identity-line">{framing.data.identityLine}</p>
+        <div class="framing-body">
+          <Content />
+        </div>
+      </header>
+
+      <section class="hub-section" aria-label="Timeline">
+        <h2 class="section-label" id="timeline">{timelineLabel}</h2>
+        <Timeline entries={framing.data.timeline} />
+      </section>
+
+      {
+        projectsPreview && (
+          <section class="hub-section" aria-label="Projects preview">
+            <div class="section-heading-row">
+              <h2 class="section-label" id="projects">
+                {projectsLabel}
+              </h2>
+              <a class="all-link" href={withBase('/projects')}>
+                All projects →
+              </a>
+            </div>
+            <ProjectPreviewCard project={projectsPreview} />
+          </section>
+        )
+      }
+
+      {
+        notesPreview && (
+          <section class="hub-section" aria-label="Notes preview">
+            <div class="section-heading-row">
+              <h2 class="section-label" id="notes">
+                {notesLabel}
+              </h2>
+              <a class="all-link" href={withBase('/notes')}>
+                All notes →
+              </a>
+            </div>
+            <NotePreviewRow note={notesPreview} linkedProject={notesPreviewLinkedProject} />
+          </section>
+        )
+      }
+
+      {
+        hasWorkbench && (
+          <section class="hub-section" aria-label="Workbench">
+            <h2 class="section-label" id="workbench">
+              {workbenchLabel}
+            </h2>
+            <Workbench workbench={workbench} />
+          </section>
+        )
+      }
+
+      {
+        hasTechStack && (
+          <section class="hub-section" aria-label="Tech Stack">
+            <h2 class="section-label" id="tech-stack">
+              {techStackLabel}
+            </h2>
+            <TechStack techStack={techStack} />
+          </section>
+        )
+      }
+
+      <section class="hub-section" aria-label="Contact">
+        <h2 class="section-label" id="contact">
+          {contactLabel}
+        </h2>
+        <ContactLinks contact={framing.data.contact} />
+      </section>
+
+      {
+        /* Identity & Polish pass: performance transparency line. No site-wide
+           footer exists yet, so this lives at the end of the Hub (flagged in
+           case a dedicated Shell-level footer was intended instead). The
+           figure below is a manually-verified snapshot of dist/_astro's total
+           gzipped JS after `npm run build` (~58 KB across every chunk the
+           site ships — Svelte runtime, view-transitions router, and every
+           interactive island) — not derived at build time, since that would
+           be real infrastructure for a single static line; re-verify by hand
+           if the island set changes materially (last verified after adding
+           the base-path helper and the Project Details Dialog island — the
+           original ~25 KB predates both). */
+      }
+      <p class="perf-line">No tracking. No analytics. ~58 KB JS.</p>
+    </div>
+  </div>
+
+  <ScrollToTop client:load />
+</Shell>
+
+<style>
+  /* Hub TOC session: the Hub becomes a long multi-section page, so it
+     adopts the same wide-grid/sticky-rail shape as the narrative and
+     Notes detail routes rather than
+     a bespoke layout — 200px rail, content column capped at the same
+     --content-measure prose width as before this change, Shell widened
+     to `wide` only to give the rail room to sit beside that column. */
+  .hub-layout {
+    display: grid;
+    grid-template-columns: 200px minmax(0, var(--content-measure));
+    justify-content: center;
+    gap: var(--space-6);
+    align-items: start;
+  }
+
+  .hub-toc-rail {
+    position: sticky;
+    top: var(--space-6);
+  }
+
+  @media (max-width: 959px) {
+    .hub-layout {
+      grid-template-columns: 1fr;
+    }
+
+    .hub-toc-rail {
+      display: none;
+    }
+  }
+
+  .framing-header {
+    margin-bottom: 0;
+  }
+
+  .framing-name {
+    margin: 0;
+    font-size: var(--font-size-6);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  .identity-line {
+    margin: var(--space-5) 0 0;
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-3);
+  }
+
+  /* Identity & Polish nav pass, hero spacing: tightened from --space-8
+     (64px) — the identity line now leads more directly into the body
+     prose while staying the larger of the header's two internal gaps
+     (--space-5 name-to-identity < --space-6 here), so the name still
+     reads as the header's own moment without the prior gap reading as
+     oversized. Flagging in case --space-7 (48px, splitting the
+     difference) was intended instead. */
+  .framing-body {
+    margin-top: var(--space-6);
+  }
+
+  .framing-body :global(p) {
+    margin: 0 0 var(--space-4);
+    color: var(--color-text-secondary);
+  }
+
+  .framing-body :global(p:last-child) {
+    margin-bottom: 0;
+  }
+
+  /* Placeholder-note demotion: same quiet bordered-note treatment as the
+     narrative detail page's blockquote — reads as an editorial aside at
+     the end of the body, not as leading page content. */
+  .framing-body :global(blockquote) {
+    margin: var(--space-5) 0 0;
+    padding: var(--space-3) var(--space-4);
+    border-left: 2px solid var(--color-accent);
+    background: var(--color-bg-raised);
+    color: var(--color-text-secondary);
+  }
+
+  .framing-body :global(blockquote p:last-child) {
+    margin-bottom: 0;
+  }
+
+  .hub-section {
+    margin-top: var(--space-8);
+    padding-top: var(--space-8);
+    border-top: 1px solid var(--color-border);
+  }
+
+  .section-label {
+    margin: 0 0 var(--space-5);
+    font-size: var(--font-size-1);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    /* Accent dosing: a muted-accent tone rather than plain
+       --color-text-muted — a quiet touch of the same accent used more
+       fully on "All projects →" below. */
+    color: var(--color-accent-muted);
+    /* Hub TOC session: matches Reading Layout's h2 scroll-margin-top, so
+       a TOC click lands the section label clear of the sticky nav bar
+       rather than flush against it. */
+    scroll-margin-top: var(--space-6);
+  }
+
+  .section-heading-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-4);
+    margin-bottom: var(--space-5);
+  }
+
+  .section-heading-row .section-label {
+    margin: 0;
+  }
+
+  .all-link {
+    color: var(--color-accent);
+    font-size: var(--font-size-1);
+    text-decoration: none;
+    white-space: nowrap;
+    transition: color var(--duration-fast) var(--ease-standard);
+  }
+
+  .all-link:hover,
+  .all-link:focus-visible {
+    color: var(--color-accent-hover);
+  }
+
+  .all-link:focus-visible {
+    outline: 2px solid var(--color-focus-ring);
+    outline-offset: 2px;
+  }
+
+  .perf-line {
+    margin: var(--space-8) 0 0;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-1);
+    font-family: var(--font-family-mono);
+  }
+</style>

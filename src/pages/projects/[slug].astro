@@ -1,0 +1,141 @@
+---
+import { getCollection, render } from 'astro:content';
+import ReadingLayout from '../../layouts/ReadingLayout.astro';
+import KindLabel from '../../components/KindLabel.astro';
+import TechChips from '../../components/TechChips.astro';
+
+export async function getStaticPaths() {
+  const narratives = await getCollection('projects', (project) => project.data.tier === 'narrative');
+  return narratives.map((project) => ({
+    params: { slug: project.id },
+    props: { project },
+  }));
+}
+
+const { project } = Astro.props;
+const { Content, headings } = await render(project);
+const sections = headings.filter((heading) => heading.depth === 2);
+
+const meta = project.data;
+const hasMeta =
+  (meta.technologies && meta.technologies.length > 0) ||
+  Boolean(meta.role) ||
+  Boolean(meta.timeframe) ||
+  (meta.collaborators && meta.collaborators.length > 0) ||
+  Boolean(meta.company) ||
+  Boolean(meta.status) ||
+  Boolean(meta.outboundLink) ||
+  meta.pinned;
+---
+
+<ReadingLayout
+  title={project.data.title}
+  backHref="/projects"
+  backLabel="Projects"
+  sections={sections}
+  wide
+  metaSidebarLabel="Project details"
+  pagefindFilter="surface:projects"
+>
+  <Fragment slot="header-meta">
+    <p class="narrative-lede">{project.data.description}</p>
+  </Fragment>
+
+  <Content />
+
+  {
+    hasMeta && (
+      <Fragment slot="meta-sidebar">
+        {meta.pinned && (
+          <p class="pinned-indicator">
+            <span class="pinned-dot" aria-hidden="true" />
+            Pinned
+          </p>
+        )}
+        {meta.technologies && meta.technologies.length > 0 && (
+          <div class="meta-block">
+            <h2 class="meta-label">Technologies</h2>
+            <TechChips technologies={meta.technologies} />
+          </div>
+        )}
+        {meta.role && (
+          <div class="meta-row">
+            <span class="meta-label">Role</span>
+            <span class="meta-value">{meta.role}</span>
+          </div>
+        )}
+        {meta.timeframe && (
+          <div class="meta-row">
+            <span class="meta-label">Timeframe</span>
+            <span class="meta-value">{meta.timeframe}</span>
+          </div>
+        )}
+        {meta.company && (
+          <div class="meta-row">
+            <span class="meta-label">Company</span>
+            <span class="meta-value">{meta.company}</span>
+          </div>
+        )}
+        {meta.collaborators && meta.collaborators.length > 0 && (
+          <div class="meta-row">
+            <span class="meta-label">Collaborators</span>
+            <span class="meta-value">{meta.collaborators.join(', ')}</span>
+          </div>
+        )}
+        {meta.status && (
+          <div class="meta-row">
+            <span class="meta-label">Status</span>
+            <span class="meta-value">{meta.status}</span>
+          </div>
+        )}
+        {meta.outboundLink && (
+          <div class="meta-row">
+            <KindLabel kind={meta.outboundLink.kind} href={meta.outboundLink.url} variant="link" />
+          </div>
+        )}
+      </Fragment>
+    )
+  }
+</ReadingLayout>
+
+<style>
+  .narrative-lede {
+    margin: var(--space-3) 0 0;
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-3);
+  }
+
+  .meta-block,
+  .meta-row {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+
+  .meta-label {
+    margin: 0;
+    font-size: var(--font-size-1);
+    color: var(--color-text-muted);
+  }
+
+  .meta-value {
+    font-size: var(--font-size-1);
+    color: var(--color-text-secondary);
+  }
+
+  .pinned-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin: 0;
+    font-size: var(--font-size-1);
+    color: var(--color-text-muted);
+  }
+
+  .pinned-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--color-accent);
+  }
+</style>

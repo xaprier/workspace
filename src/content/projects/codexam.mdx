@@ -1,0 +1,74 @@
+---
+title: "codexam"
+description: "A realtime online coding-quiz platform — Docker-sandboxed execution, live monitoring, anticheat, and keystroke-recorded playback."
+tier: narrative
+pinned: false
+architectureDiagramRequired: true
+technologies: [react, typescript, aspnet-core, postgresql, docker, signalr]
+role: "Design & architecture lead"
+collaborators: ["Hatice", "Emir"]
+timeframe: "2026"
+outboundLink:
+  url: "https://github.com/Haticeakt7/codexam"
+  kind: github
+createdAt: 2026-06-26
+updatedAt: 2026-06-26
+---
+
+import ArchitectureDiagram from '../../components/ArchitectureDiagram.astro';
+
+## Problem
+
+A university course project set out to build a realtime online
+coding-quiz platform — but the gap between "code sandbox" and "exam
+platform" is wider than it looks. A sandbox runs code. An exam
+platform has to run code *and* enforce constraints that make the
+running fair: time limits that actually bind, environments that
+prevent cheating, monitoring that catches tab-switching or
+clipboard access in real time, and a post-exam record precise
+enough to reconstruct what each participant did. The challenge
+was building all of this — isolation, monitoring, recording — as
+one coherent system rather than a collection of demos stitched
+together.
+
+## Approach
+
+I led the system's design and architecture, building it with two
+teammates. The central architectural decision was to treat code
+execution as an infrastructure concern, not an application feature:
+each submission runs in an isolated Docker container with networking
+disabled and CPU/memory/timeout limits enforced, per language
+(Python, JavaScript, C++, C, Java, Go). This meant the backend
+didn't need to trust or inspect user code — the container boundary
+was the security model.
+
+On top of that execution layer, the monitoring and recording systems
+were built as separate concerns. Quiz owners get a live SignalR-driven
+dashboard showing each participant's status — tab-switch, fullscreen-
+exit, and clipboard-access detection — with per-second granularity.
+Every submission's keystrokes are recorded for diff-based replay
+afterward, giving quiz owners a post-exam reconstruction of how
+each solution was written, not just what was submitted.
+
+The stack is React/TypeScript on the frontend and ASP.NET Core with
+PostgreSQL on the backend, with Redis and Hangfire handling the
+background job queue for container orchestration, behind an Nginx
+reverse proxy.
+
+## Architecture
+
+The frontend and background-job paths are separate concerns behind one
+reverse proxy, with per-language execution fully isolated from both.
+
+<ArchitectureDiagram
+  warm="/projects/codexam-architecture-warm.svg"
+  cool="/projects/codexam-architecture-cool.svg"
+  alt="Architecture diagram: a browser client sends requests through an Nginx reverse proxy to a React/TypeScript frontend and an ASP.NET Core backend with SignalR. The backend reads and writes PostgreSQL, dispatches background jobs to Redis and Hangfire, and routes code submissions to per-language Docker sandboxes (Python, JavaScript, C++, C, Java, Go)."
+/>
+
+## Outcome
+
+The platform runs end to end — anonymous practice, scheduled exams, live
+monitoring, and submission replay all work — built with the ambition of
+a production exam system rather than a minimal course demo, even though
+its context remains a course project.

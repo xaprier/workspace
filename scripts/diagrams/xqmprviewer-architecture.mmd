@@ -1,0 +1,30 @@
+flowchart TD
+    MW["MainWindow<br/>(mode selection)"]
+
+    subgraph VP["Viewport Mode"]
+        VV["ViewportView<br/>(IView)"]
+        VC["ViewportController"]
+        LIB["XQVtkViewport<br/>Library"]
+        VV -->|bound to| VC
+        VC -->|owns & initializes| LIB
+    end
+
+    subgraph MWD["Multi-Window Mode"]
+        MVv["MultiWindowView<br/>(IView)"]
+        MC["MultiWindowController"]
+        MVv -->|bound to| MC
+    end
+
+    MW -->|selects| VV
+    MW -->|selects| MVv
+
+    DICOM["DicomController"]
+    SPHERE["SphereController"]
+    FPS["FPS / Frame-Delay Readout"]
+
+    VC -.-> DICOM
+    MC -.-> DICOM
+    VC -.-> SPHERE
+    MC -.-> SPHERE
+    VC -.-> FPS
+    MC -.-> FPS

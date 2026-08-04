@@ -1,0 +1,38 @@
+---
+import { withBase } from '../lib/withBase';
+
+interface Props {
+  warm: string;
+  cool: string;
+  alt: string;
+}
+
+const { warm, cool, alt } = Astro.props;
+---
+
+<span class="arch-diagram-slot arch-diagram-slot-warm">
+  <img src={withBase(warm)} alt={alt} class="arch-diagram" />
+</span>
+<span class="arch-diagram-slot arch-diagram-slot-cool">
+  <img src={withBase(cool)} alt={alt} class="arch-diagram" />
+</span>
+
+<style>
+  /* Toggled on the wrapper <span>, not the <img> itself: ReadingLayout's
+     `.detail-body img` rule outranks a bare `.arch-diagram-*` class on
+     specificity ((0,2,1) vs (0,1,0)), so display:none on the <img> loses
+     that war and both diagrams render regardless of data-color-scheme.
+     A hidden ancestor still hides its children unconditionally, sidestepping
+     the specificity conflict rather than trying to out-rank it. */
+  :global(.arch-diagram-slot-cool) {
+    display: none;
+  }
+
+  :global([data-color-scheme='cool'] .arch-diagram-slot-warm) {
+    display: none;
+  }
+
+  :global([data-color-scheme='cool'] .arch-diagram-slot-cool) {
+    display: block;
+  }
+</style>

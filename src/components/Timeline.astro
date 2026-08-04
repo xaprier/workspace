@@ -1,0 +1,167 @@
+---
+type TimelineKind = 'education' | 'work' | 'milestone';
+
+// Kept mixed-case (matches NOTE_TYPE_LABELS' convention) rather than the
+// uppercase/letter-spaced treatment used for the Hub's section markers —
+// this is a data value in the mono-dosing rule's sense, not a section
+// heading, so it takes that rule's plain-text register.
+const TIMELINE_KIND_LABELS: Record<TimelineKind, string> = {
+  education: 'Education',
+  work: 'Work',
+  milestone: 'Milestone',
+};
+
+interface TimelineEntry {
+  dateRange: string;
+  label: string;
+  description?: string;
+  current?: boolean;
+  kind?: TimelineKind;
+}
+
+interface Props {
+  entries: TimelineEntry[];
+}
+
+const { entries } = Astro.props;
+---
+
+<ol class="timeline">
+  {
+    entries.map((entry) => (
+      <li class="timeline-entry">
+        <div class="timeline-date-col">
+          <span
+            class:list={[
+              'timeline-date',
+              { current: entry.current, soft: entry.dateRange.toLowerCase() === 'next' },
+            ]}
+          >
+            {entry.dateRange}
+          </span>
+          {entry.kind && <span class="timeline-kind">{TIMELINE_KIND_LABELS[entry.kind]}</span>}
+        </div>
+        <div class="timeline-content">
+          <span class="timeline-label">{entry.label}</span>
+          {entry.description && <p class="timeline-description">{entry.description}</p>}
+        </div>
+      </li>
+    ))
+  }
+</ol>
+
+<style>
+  /* Grid moved from per-entry to the <ol> itself (2026-07-19 range
+     refinement): entries now show variable-length date ranges
+     ("2021 – 2023" vs. "Sep 2023 – Sep 2024"), so the left column has to
+     share one width across every row — only possible if every row's
+     first cell belongs to the same grid track, which requires one grid
+     spanning all entries rather than each <li> auto-sizing independently. */
+  .timeline {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: minmax(3.5rem, auto) 1fr;
+    column-gap: var(--space-4);
+    row-gap: var(--space-5);
+  }
+
+  /* Subgrid, not display:contents — each <li> keeps its own box (list
+     semantics stay intact for assistive tech) while opting its two
+     columns into the parent's shared tracks, so the date column's width
+     is computed from the longest date range across all four entries,
+     not just its own row. */
+  .timeline-entry {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: subgrid;
+    align-items: baseline;
+  }
+
+  /* Wraps the date range and its optional kind label so the pair lays
+     out as one grid item — the date stays the column's first line
+     (baseline alignment with .timeline-content's label below is
+     unaffected), the kind label sits underneath as a second, smaller
+     line. Sets an explicit font-size context (rather than inheriting
+     whatever the ancestor happens to be) so the kind label's relative
+     shrink below is predictable. */
+  .timeline-date-col {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    font-size: var(--font-size-1);
+  }
+
+  /* Mono (2026-07-19 range refinement) — reverses the prior "Timeline
+     stays sans" call now that this column holds date ranges rather than
+     bare years; a range reads as structured data in a way a single year
+     didn't, so it now fits the mono-dosing rule's general test instead
+    of standing as an exception to it. */
+  .timeline-date {
+    font-family: var(--font-family-mono);
+    color: var(--color-text-muted);
+    transition: color var(--duration-fast) var(--ease-standard);
+  }
+
+  /* Accent dosing: the "you are here" entry — the one place the timeline
+     signals present tense. Content-authored via the current flag, not
+     derived from the system clock. */
+  .timeline-date.current {
+    color: var(--color-accent);
+  }
+
+  /* The "Next" entry is explicitly speculative/placeholder — softer than
+     the settled past entries, even softer than the default muted tone. */
+  .timeline-date.soft {
+    opacity: 0.6;
+  }
+
+  /* Data-shaped classification value (education/work/milestone) — mono
+     per the mono dosing rule, same register as a Note's type label.
+     Static, no hover response: like the Notes stream's type label, it's
+     metadata about the entry, not itself something to read closely.
+     Sized one step below --font-size-1, the type scale's smallest token
+     — flagged: a deliberate, single-use, non-tokenized relative size
+     (0.85em against the 14px context above, ~12px) rather than a new
+     global scale step introduced for one label. */
+  .timeline-kind {
+    font-family: var(--font-family-mono);
+    font-size: 0.85em;
+    color: var(--color-text-muted);
+  }
+
+  .timeline-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+
+  /* Reading-hover, not interactive-hover — entries are static content, so rest
+     state is deliberately one step dimmer than a heading, brightening
+     only on hover/focus-within to signal reading focus, never
+     clickability. */
+  .timeline-label {
+    font-size: var(--font-size-2);
+    color: var(--color-text-secondary);
+    font-weight: 600;
+    transition: color var(--duration-fast) var(--ease-standard);
+  }
+
+  /* Hover only, not :focus-within — a timeline entry has no focusable
+     descendant of its own (no link, no button), so a focus variant
+     would be permanently inert dead code, not a real affordance. */
+  .timeline-entry:hover .timeline-date {
+    color: var(--color-accent);
+  }
+
+  .timeline-entry:hover .timeline-label {
+    color: var(--color-text-primary);
+  }
+
+  .timeline-description {
+    margin: 0;
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-1);
+  }
+</style>

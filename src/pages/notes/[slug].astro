@@ -1,0 +1,109 @@
+---
+import { getCollection, getEntry, render } from 'astro:content';
+import ReadingLayout from '../../layouts/ReadingLayout.astro';
+import { NOTE_TYPE_LABELS } from '../../lib/noteTypeLabels';
+import { withBase } from '../../lib/withBase';
+
+export async function getStaticPaths() {
+  const notes = await getCollection('notes');
+  return notes.map((note) => ({
+    params: { slug: note.id },
+    props: { note },
+  }));
+}
+
+const { note } = Astro.props;
+const { Content, headings } = await render(note);
+
+// Notes-specific TOC-eligibility rule (Notes polish pass): a rail — and
+// therefore the `wide` layout it requires — only earns its keep once
+// there are enough sections to navigate between. ReadingLayout itself
+// stays generic (any non-empty `sections` shows a TOC); this threshold
+// lives here, not in the shared component.
+const allSections = headings.filter((heading) => heading.depth === 2);
+const sections = allSections.length >= 2 ? allSections : [];
+
+const linkedProject = note.data.linkedProject ? await getEntry(note.data.linkedProject) : null;
+
+const dateFormat: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'short', day: 'numeric' };
+const createdAtLabel = note.data.createdAt.toLocaleDateString('en-US', dateFormat);
+const updatedAtLabel = note.data.updatedAt.toLocaleDateString('en-US', dateFormat);
+const wasUpdated = updatedAtLabel !== createdAtLabel;
+---
+
+<ReadingLayout
+  title={note.data.title}
+  backHref="/notes"
+  backLabel="Notes"
+  sections={sections}
+  wide={sections.length > 0}
+  pagefindFilter="surface:notes"
+>
+  <Fragment slot="header-meta">
+    <p class="note-type">{NOTE_TYPE_LABELS[note.data.type]}</p>
+    <p class="note-dates">
+      Published {createdAtLabel}
+      {wasUpdated && <> · Updated {updatedAtLabel}</>}
+    </p>
+    {
+      linkedProject && (
+        <p class="note-linked-project">
+          <span class="linked-project-label">Part of:</span>{' '}
+          <a href={withBase(`/projects/${linkedProject.id}`)}>{linkedProject.data.title}</a>
+        </p>
+      )
+    }
+  </Fragment>
+
+  <Content />
+</ReadingLayout>
+
+<style>
+  .note-type {
+    margin: var(--space-3) 0 0;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-1);
+    font-family: var(--font-family-mono);
+  }
+
+  .note-dates {
+    margin: var(--space-2) 0 0;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-1);
+    font-family: var(--font-family-mono);
+  }
+
+  /* "Part of" gets clearer treatment than the other quiet metadata lines
+     above it — standing accent on the project title, not muted-until-
+     hover — since it's the one line here that connects to something else
+     (same standing-accent principle as the Hub's "All projects ->", not
+     a badge/chip: Notes' own display language stays text-only). Call
+     made without further precedent to follow; flagging in case a
+     quieter (muted-until-hover, matching the stream row's "-> {title}")
+     treatment was intended instead. */
+  .note-linked-project {
+    margin: var(--space-3) 0 0;
+    font-size: var(--font-size-1);
+  }
+
+  .linked-project-label {
+    color: var(--color-text-muted);
+  }
+
+  .note-linked-project a {
+    color: var(--color-accent);
+    text-decoration: none;
+    transition: color var(--duration-fast) var(--ease-standard);
+  }
+
+  .note-linked-project a:hover,
+  .note-linked-project a:focus-visible {
+    color: var(--color-accent-hover);
+    text-decoration: underline;
+  }
+
+  .note-linked-project a:focus-visible {
+    outline: 2px solid var(--color-focus-ring);
+    outline-offset: 2px;
+  }
+</style>

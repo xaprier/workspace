@@ -1,0 +1,108 @@
+---
+// Hub's Workbench block (Identity & Polish pass): the actual working
+// environment as structured data, sourced from the framing frontmatter's
+// optional workbench field. Test applied deliberately: this is
+// an equipment list (labeled rows), never a terminal window, prompt, or
+// any other simulated chrome — ruled out entries render nothing, not a
+// placeholder row.
+//
+// Registry upgrade (2026-07-19, Identity & Polish nav pass): a value can
+// hold more than one tool ("Neovim / Qt Creator"), so each row is
+// tokenized on " / " and each token resolved independently — a token
+// that matches the technology registry renders as a TechBadge, anything
+// else keeps the original plain mono text. A row can mix both in the
+// same value.
+import { findTechnologySlug } from '../data/technologies';
+import TechBadge from './TechBadge.astro';
+
+interface Props {
+  workbench: {
+    os?: string;
+    wm?: string;
+    editor?: string;
+    shell?: string;
+    buildTools?: string;
+  };
+}
+
+const { workbench } = Astro.props;
+
+const rows: { label: string; value: string }[] = [
+  workbench.os && { label: 'OS', value: workbench.os },
+  workbench.wm && { label: 'WM/Compositor', value: workbench.wm },
+  workbench.editor && { label: 'Editor(s)', value: workbench.editor },
+  workbench.shell && { label: 'Shell', value: workbench.shell },
+  workbench.buildTools && { label: 'Build Tools', value: workbench.buildTools },
+].filter((row): row is { label: string; value: string } => Boolean(row));
+
+const tokenize = (value: string) => value.split(' / ').map((token) => token.trim());
+---
+
+<dl class="workbench">
+  {
+    rows.map((row) => (
+      <div class="workbench-row">
+        <dt class="workbench-label">{row.label}</dt>
+        <dd class="workbench-value">
+          {tokenize(row.value).map((token, i) => {
+            const slug = findTechnologySlug(token);
+            return (
+              <>
+                {i > 0 && <span class="workbench-sep">/</span>}
+                {slug ? <TechBadge slug={slug} /> : <span class="workbench-token">{token}</span>}
+              </>
+            );
+          })}
+        </dd>
+      </div>
+    ))
+  }
+</dl>
+
+<style>
+  /* Labels stay sans (Inter, the default) — they're UI copy, not data.
+     Fallback token text stays mono — tool names are the data-shaped
+     part of this block, the same "data looks like data" reasoning as
+     the Hub's other timestamp/type-indicator mono dosing. A token that
+     upgrades to a TechBadge intentionally breaks from mono — it takes
+     TechBadge's own established visual language (bordered pill, sans
+     text, icon) instead, the same tradeoff Technology Chips already
+     makes for a registered technology. */
+  .workbench {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .workbench-row {
+    display: grid;
+    grid-template-columns: minmax(8rem, auto) 1fr;
+    column-gap: var(--space-4);
+  }
+
+  .workbench-label {
+    margin: 0;
+    font-size: var(--font-size-1);
+    color: var(--color-text-muted);
+  }
+
+  .workbench-value {
+    margin: 0;
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-1);
+    font-size: var(--font-size-1);
+  }
+
+  .workbench-token {
+    color: var(--color-text-secondary);
+    font-family: var(--font-family-mono);
+  }
+
+  .workbench-sep {
+    color: var(--color-text-muted);
+    font-family: var(--font-family-mono);
+  }
+</style>

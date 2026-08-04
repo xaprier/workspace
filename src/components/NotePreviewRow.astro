@@ -1,0 +1,102 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { NOTE_TYPE_LABELS } from '../lib/noteTypeLabels';
+import { withBase } from '../lib/withBase';
+
+interface Props {
+  note: CollectionEntry<'notes'>;
+  linkedProject: CollectionEntry<'projects'> | null;
+}
+
+const { note, linkedProject } = Astro.props;
+
+const createdAtLabel = note.data.createdAt.toLocaleDateString('en-US', {
+  year: 'numeric',
+  month: 'short',
+  day: 'numeric',
+});
+---
+
+<article class="note-preview-row">
+  <a class="note-preview-title" href={withBase(`/notes/${note.id}`)}>{note.data.title}</a>
+  <p class="note-preview-meta">
+    <span class="note-preview-type">{NOTE_TYPE_LABELS[note.data.type]}</span>
+    <span class="note-preview-date">{createdAtLabel}</span>
+  </p>
+  {
+    linkedProject && (
+      <p class="note-preview-linked-project">
+        <span class="linked-project-label">Part of:</span>{' '}
+        <a href={withBase(`/projects/${linkedProject.id}`)}>{linkedProject.data.title}</a>
+      </p>
+    )
+  }
+</article>
+
+<style>
+  /* Deliberately no raised card surface (unlike ProjectPreviewCard) — the
+     Notes surface itself never renders Notes as cards, so the Hub preview reuses the same
+     quiet-row language as the stream entry it's drawn from, not the
+     Projects preview's card treatment. */
+  .note-preview-row {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .note-preview-title {
+    font-size: var(--font-size-3);
+    font-weight: 600;
+    color: var(--color-text-primary);
+    text-decoration: none;
+    transition: color var(--duration-fast) var(--ease-standard);
+  }
+
+  .note-preview-title:hover,
+  .note-preview-title:focus-visible {
+    color: var(--color-accent);
+  }
+
+  .note-preview-title:focus-visible {
+    outline: 2px solid var(--color-focus-ring);
+    outline-offset: 2px;
+  }
+
+  .note-preview-meta {
+    display: flex;
+    gap: var(--space-3);
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-1);
+    font-family: var(--font-family-mono);
+  }
+
+  .note-preview-linked-project {
+    margin: 0;
+    font-size: var(--font-size-1);
+  }
+
+  .linked-project-label {
+    color: var(--color-text-muted);
+  }
+
+  /* Quieter dosage than the detail header's standing-accent treatment —
+     muted until hover, matching this row's overall quiet-row register
+     (see Linked Project reference — one pattern, two
+     dosage levels). */
+  .note-preview-linked-project a {
+    color: var(--color-text-muted);
+    text-decoration: none;
+    transition: color var(--duration-fast) var(--ease-standard);
+  }
+
+  .note-preview-linked-project a:hover,
+  .note-preview-linked-project a:focus-visible {
+    color: var(--color-accent);
+  }
+
+  .note-preview-linked-project a:focus-visible {
+    outline: 2px solid var(--color-focus-ring);
+    outline-offset: 2px;
+  }
+</style>

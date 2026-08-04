@@ -1,0 +1,25 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+*.swp
+*~
+
+# Node
+node_modules/
+npm-debug.log*
+
+# Astro
+dist/
+.astro/
+
+# Env
+.env
+.env.production
+
+# Local tooling state
+.claude/settings.local.json
+
+# Dev-mode build caches (never committed, never shipped)
+.cache/

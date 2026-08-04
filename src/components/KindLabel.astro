@@ -1,0 +1,81 @@
+---
+interface Props {
+  kind: 'github' | 'external';
+  href?: string;
+  variant?: 'label' | 'link';
+  // Project Dialog trigger-model revision: the index card's outbound Kind
+  // Label is now itself a real, independently clickable link (the
+  // "one-click escape hatch" beside the card's whole-card "View details"
+  // action) — a short "GitHub ↗" / "External ↗" reads better at that
+  // compact, card-embedded size than the meta sidebar's full sentence
+  // ("View on GitHub"). Off by default so the narrative meta sidebar's
+  // existing variant="link" usage is unaffected.
+  arrow?: boolean;
+}
+
+const { kind, href, variant = 'label', arrow = false } = Astro.props;
+
+const text =
+  variant === 'link' && !arrow
+    ? kind === 'github'
+      ? 'View on GitHub'
+      : 'View external reference'
+    : kind === 'github'
+      ? 'GitHub'
+      : 'External';
+
+const Tag = href ? 'a' : 'span';
+const linkProps = href ? { href, target: '_blank', rel: 'noopener noreferrer' } : {};
+---
+
+<Tag class="kind-label" {...linkProps}>
+  {kind === 'github' ? (
+    <svg class="kind-icon" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+      <path
+        fill="currentColor"
+        d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"
+      />
+    </svg>
+  ) : (
+    <svg class="kind-icon" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+      <path
+        fill="currentColor"
+        d="M6.75 2.5a.75.75 0 0 0 0 1.5h3.19L4.72 9.22a.75.75 0 1 0 1.06 1.06L11 5.06v3.19a.75.75 0 0 0 1.5 0v-5a.75.75 0 0 0-.75-.75h-5Z"
+      />
+      <path
+        fill="currentColor"
+        d="M3.5 4A1.5 1.5 0 0 0 2 5.5v7A1.5 1.5 0 0 0 3.5 14h7a1.5 1.5 0 0 0 1.5-1.5V10a.75.75 0 0 0-1.5 0v2.5a.5.5 0 0 1-.5.5h-7a.5.5 0 0 1-.5-.5v-7a.5.5 0 0 1 .5-.5H6A.75.75 0 0 0 6 4H3.5Z"
+      />
+    </svg>
+  )}
+  <span>{text}{arrow && ' ↗'}</span>
+</Tag>
+
+<style>
+  .kind-label {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--color-text-muted);
+    font-size: var(--font-size-1);
+    text-decoration: none;
+  }
+
+  a.kind-label {
+    transition: color var(--duration-fast) var(--ease-standard);
+  }
+
+  a.kind-label:hover,
+  a.kind-label:focus-visible {
+    color: var(--color-accent);
+  }
+
+  a.kind-label:focus-visible {
+    outline: 2px solid var(--color-focus-ring);
+    outline-offset: 2px;
+  }
+
+  .kind-icon {
+    flex-shrink: 0;
+  }
+</style>

@@ -1,0 +1,42 @@
+---
+import { getCollection, getEntry } from 'astro:content';
+import Shell from '../../layouts/Shell.astro';
+import NotesPageIsland from '../../components/NotesPageIsland.svelte';
+import SearchIsland from '../../components/SearchIsland.svelte';
+
+const notesEntries = await getCollection('notes');
+
+const sorted = notesEntries.sort(
+  (a, b) => b.data.createdAt.valueOf() - a.data.createdAt.valueOf(),
+);
+
+const notes = await Promise.all(
+  sorted.map(async (note) => {
+    const linkedProject = note.data.linkedProject
+      ? await getEntry(note.data.linkedProject)
+      : null;
+    return {
+      slug: note.id,
+      title: note.data.title,
+      type: note.data.type,
+      createdAt: note.data.createdAt.toISOString(),
+      linkedProject: linkedProject
+        ? { slug: linkedProject.id, title: linkedProject.data.title }
+        : null,
+    };
+  }),
+);
+---
+
+<Shell title="Notes">
+  <div class="page-content" data-pagefind-filter="surface:notes">
+    <SearchIsland surface="notes" client:load />
+    <NotesPageIsland client:load notes={notes} />
+  </div>
+</Shell>
+
+<style>
+  .page-content.search-active :global(.notes-grid) {
+    display: none;
+  }
+</style>

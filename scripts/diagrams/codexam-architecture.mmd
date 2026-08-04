@@ -1,0 +1,22 @@
+flowchart TD
+    Client["Browser Client"] --> Nginx["Nginx Reverse Proxy"]
+    Nginx --> FE["React / TypeScript Frontend"]
+    Nginx --> BE["ASP.NET Core Backend<br/>+ SignalR"]
+    FE --> BE
+    BE --> PG(["PostgreSQL"])
+    BE --> Jobs
+    BE --> Sandboxes
+
+    subgraph Jobs["Background Jobs"]
+        Redis(["Redis"])
+        Hangfire["Hangfire"]
+    end
+
+    subgraph Sandboxes["Per-Language Docker Sandboxes"]
+        Py["Python"]
+        Js["JavaScript"]
+        Cpp["C++"]
+        C["C"]
+        Java["Java"]
+        Go["Go"]
+    end

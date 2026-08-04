@@ -1,0 +1,134 @@
+---
+import { ClientRouter } from 'astro:transitions';
+import NavBar from '../components/NavBar.astro';
+import { withBase } from '../lib/withBase';
+import '../styles/tokens.css';
+
+interface Props {
+  title: string;
+  wide?: boolean;
+}
+
+const { title, wide = false } = Astro.props;
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <script is:inline>
+      (function () {
+        if (localStorage.getItem('color-scheme') === 'cool') {
+          document.documentElement.dataset.colorScheme = 'cool';
+        }
+      })();
+      document.addEventListener('astro:after-swap', function () {
+        if (localStorage.getItem('color-scheme') === 'cool') {
+          document.documentElement.dataset.colorScheme = 'cool';
+        }
+      });
+    </script>
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href={withBase('/favicon-32x32.png')} />
+    <link rel="icon" type="image/png" sizes="16x16" href={withBase('/favicon-16x16.png')} />
+    <link rel="shortcut icon" href={withBase('/favicon.ico')} />
+
+    <!-- Apple -->
+    <link rel="apple-touch-icon" sizes="180x180" href={withBase('/apple-touch-icon.png')} />
+
+    <!-- Android / PWA -->
+    <link rel="manifest" href={withBase('/site.webmanifest')} />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title} · Workspace</title>
+    <ClientRouter />
+  </head>
+  <body>
+    <NavBar currentPath={Astro.url.pathname} />
+    <main class:list={['shell-content', { wide }]}>
+      <slot />
+    </main>
+  </body>
+</html>
+
+<style is:global>
+  * {
+    box-sizing: border-box;
+  }
+
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: var(--color-bg-base);
+    color: var(--color-text-primary);
+    font-family: var(--font-family-ui);
+    font-size: var(--font-size-2);
+    line-height: 1.5;
+  }
+
+  a {
+    color: inherit;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    /* Layout-shift fix (2026-07-19): the real cause of the switcher
+       "shift" was never the switcher — body centers its content
+       (align-items: center, below) against the viewport's content-box
+       width, and that width differs by the scrollbar's own width
+       depending on whether a given page's content is tall enough to
+       scroll. A short page and a long one (e.g. the Hub) therefore
+       centered against two different available widths, shifting every
+       centered element, switcher included. Reserving the gutter
+       unconditionally makes that width constant across every page
+       regardless of content length, whether or not a scrollbar is
+       actually showing. Shipped alone, no overflow-y: scroll fallback —
+       scrollbar-gutter has full support across current evergreen
+       browsers as of this pass, so a legacy fallback would add a
+       permanently-visible scrollbar track on every short page for no
+       remaining browser-support benefit. */
+    scrollbar-gutter: stable;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+
+    /* Identity & Polish pass: extends the system-wide reduced-motion rule
+       to the hover/focus transitions
+       added this session (card raise, border-accent, link color). Every
+       future transition built on the shared duration/easing tokens
+       inherits this collapse automatically — an instant state change
+       replaces the eased one, per the existing system-wide policy.
+       ::backdrop added (Project Details Dialog session) — a pseudo-
+       element, not matched by the universal `*` selector above, so the
+       site's first <dialog>'s scrim transition needed an explicit entry
+       to fall under the same blanket collapse. */
+    *,
+    *::before,
+    *::after,
+    *::backdrop {
+      transition-duration: 0.01ms !important;
+      animation-duration: 0.01ms !important;
+    }
+  }
+</style>
+
+<style>
+  .shell-content {
+    width: 100%;
+    max-width: var(--content-measure);
+    padding: var(--space-6) var(--space-4);
+  }
+
+  .shell-content.wide {
+    max-width: var(--content-measure-wide);
+  }
+</style>

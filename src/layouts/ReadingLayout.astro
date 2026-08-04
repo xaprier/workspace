@@ -1,0 +1,247 @@
+---
+// Shared long-form reading chrome for both the Project narrative detail
+// and the Note detail routes (2026-07-19 Notes polish pass — third
+// consumer arrived, so this replaced the previously-duplicated CSS block
+// each route carried).
+//
+// `wide` controls which of two structural modes renders, and is decided
+// by the calling page, not inferred here — Projects always passes `wide`
+// (unconditional, matching its pre-extraction behavior exactly, so this
+// refactor is a zero-behavior-change move for the narrative route), Notes
+// passes `wide={sections.length > 0}` (its own 2+-heading TOC-eligibility
+// rule, applied before `sections` ever reaches this component):
+//
+// - `wide` true: grid layout — a sticky rail (back link + TOC, TOC only
+//   when `sections` is non-empty) beside the content column, plus an
+//   optional third column if a `meta-sidebar` slot is provided.
+// - `wide` false: single column, no reserved rail — the back link
+//   renders inline above the content, itself `position: sticky` so it
+//   stays reachable without spending a grid column on it (Notes' "no
+//   left rail at all, not an empty one" case).
+import Shell from './Shell.astro';
+import TableOfContents from '../components/TableOfContents.svelte';
+import ScrollToTop from '../components/ScrollToTop.svelte';
+import { withBase } from '../lib/withBase';
+
+interface Props {
+  title: string;
+  backHref: string;
+  backLabel: string;
+  sections: { slug: string; text: string }[];
+  wide: boolean;
+  metaSidebarLabel?: string;
+  pagefindFilter?: string;
+}
+
+const { title, backHref, backLabel, sections, wide, metaSidebarLabel = 'Details', pagefindFilter } = Astro.props;
+const hasMetaSidebar = Astro.slots.has('meta-sidebar');
+---
+
+<Shell title={title} wide={wide}>
+  <div class:list={['reading-layout', { wide, 'has-meta-sidebar': hasMetaSidebar }]} {...pagefindFilter ? { 'data-pagefind-filter': pagefindFilter } : {}}>
+    {
+      wide ? (
+        <aside class="side-rail" aria-label="Page navigation">
+          <a class="back-link" href={withBase(backHref)}>
+            ← {backLabel}
+          </a>
+          {sections.length > 0 && (
+            <div class="toc-wrapper">
+              <TableOfContents client:load sections={sections} />
+            </div>
+          )}
+        </aside>
+      ) : (
+        <a class="back-link back-link-inline" href={withBase(backHref)}>
+          ← {backLabel}
+        </a>
+      )
+    }
+
+    <article class="reading-detail">
+      <header class="detail-header">
+        <h1>{title}</h1>
+        <slot name="header-meta" />
+      </header>
+      <div class="detail-body">
+        <slot />
+      </div>
+    </article>
+
+    {
+      wide && hasMetaSidebar && (
+        <aside class="meta-sidebar" aria-label={metaSidebarLabel}>
+          <slot name="meta-sidebar" />
+        </aside>
+      )
+    }
+  </div>
+
+  <ScrollToTop client:load />
+</Shell>
+
+<style>
+  .back-link {
+    display: inline-block;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-1);
+    text-decoration: none;
+    transition: color var(--duration-fast) var(--ease-standard);
+  }
+
+  .back-link:hover,
+  .back-link:focus-visible {
+    color: var(--color-accent);
+  }
+
+  .back-link:focus-visible {
+    outline: 2px solid var(--color-focus-ring);
+    outline-offset: 2px;
+  }
+
+  /* No rail column reserved in this mode — the link stays reachable by
+     staying sticky within the single content column instead. A solid
+     background stops passing prose from showing through while pinned. */
+  .back-link-inline {
+    position: sticky;
+    top: var(--space-6);
+    z-index: 1;
+    align-self: flex-start;
+    margin-bottom: var(--space-6);
+    padding: var(--space-1) 0;
+    background: var(--color-bg-base);
+  }
+
+  .reading-layout {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .reading-layout.wide {
+    display: grid;
+    grid-template-columns: 200px minmax(0, var(--content-measure));
+    justify-content: center;
+    gap: var(--space-6);
+    align-items: start;
+  }
+
+  .reading-layout.wide.has-meta-sidebar {
+    grid-template-columns: 200px minmax(0, var(--content-measure)) 240px;
+  }
+
+  .side-rail {
+    position: sticky;
+    top: var(--space-6);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+  }
+
+  .meta-sidebar {
+    position: sticky;
+    top: var(--space-6);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  @media (max-width: 959px) {
+    /* Must match .reading-layout.wide.has-meta-sidebar's specificity below
+       (3 classes) — a lone .reading-layout.wide override here loses to that
+       rule on any page with a meta-sidebar, since @media adds no specificity
+       and the more-specific rule wins regardless of which is inside a query.
+       minmax(0, 1fr), not a bare 1fr: a bare 1fr track's automatic minimum
+       size is its content's min-content width, so a wide <pre> (or any
+       unbreakable content) blows out the single column and the whole page
+       scrolls horizontally — the same reason the desktop grid above uses
+       minmax(0, var(--content-measure)) rather than the bare token. */
+    .reading-layout.wide,
+    .reading-layout.wide.has-meta-sidebar {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .side-rail {
+      position: static;
+    }
+
+    .meta-sidebar {
+      order: -1;
+      position: static;
+    }
+  }
+
+  .detail-header {
+    margin-bottom: var(--space-6);
+    padding-bottom: var(--space-5);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .detail-header h1 {
+    margin: 0;
+    font-size: var(--font-size-5);
+  }
+
+  /* Heading-to-scale mapping and prose chrome — the single source both
+     the narrative detail and note detail bodies render through now. */
+  .detail-body :global(h2) {
+    font-size: var(--font-size-4);
+    margin-top: var(--space-7);
+    margin-bottom: var(--space-3);
+    scroll-margin-top: var(--space-6);
+  }
+
+  .detail-body :global(h3) {
+    font-size: var(--font-size-3);
+    margin-top: var(--space-5);
+    margin-bottom: var(--space-2);
+  }
+
+  .detail-body :global(p) {
+    margin: 0 0 var(--space-4);
+  }
+
+  .detail-body :global(blockquote) {
+    margin: 0 0 var(--space-5);
+    padding: var(--space-3) var(--space-4);
+    border-left: 2px solid var(--color-accent);
+    background: var(--color-bg-raised);
+    color: var(--color-text-secondary);
+  }
+
+  .detail-body :global(blockquote p:last-child) {
+    margin-bottom: 0;
+  }
+
+  /* Diagram framing: border,
+     bg-raised backdrop, max-width, vertical margin — identical treatment
+     for a static image and a build-time-rendered Mermaid <svg> (rehype-
+     mermaid's inline-svg strategy emits a bare <svg>, not an <img>). */
+  .detail-body :global(img),
+  .detail-body :global(svg) {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin: var(--space-5) 0;
+    background: var(--color-bg-raised);
+    border: 1px solid var(--color-border);
+  }
+
+  .detail-body :global(code) {
+    background: var(--color-bg-raised);
+    padding: 0.15em 0.35em;
+    font-size: 0.9em;
+  }
+
+  .detail-body :global(pre) {
+    background: var(--color-bg-raised);
+    padding: var(--space-4);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 0 var(--space-5);
+  }
+
+  .detail-body :global(pre code) {
+    background: none;
+    padding: 0;
+  }
+</style>

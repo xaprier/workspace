@@ -1,0 +1,128 @@
+/*
+ * Workspace design tokens.
+ *
+ * One user-facing axis, one attribute, on <html>:
+ *   data-color-scheme="warm" | "cool" — Warm (default, attribute absent
+ *   or "warm") pairs base B with the orange accent; Cool ("cool") pairs
+ *   base C with the blue accent. The pair is never set independently —
+ *   there is no separate base-palette or accent-theme selector anymore.
+ */
+
+/* ---------------------------------------------------------------------
+ * Fonts (self-hosted variable fonts, OFL-licensed — see src/fonts/*-LICENSE.txt)
+ * --------------------------------------------------------------------- */
+
+@font-face {
+  font-family: 'Inter Variable';
+  src: url('../fonts/InterVariable.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'JetBrains Mono Variable';
+  src: url('../fonts/JetBrainsMonoVariable.woff2') format('woff2');
+  font-weight: 100 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  /* Typography */
+  --font-family-ui: 'Inter Variable', 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-family-mono: 'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --font-size-1: 14px;
+  --font-size-2: 16px;
+  --font-size-3: 20px;
+  --font-size-4: 25px;
+  --font-size-5: 31px;
+  /* Scale extension (2026-07-18, Hub composition pass): continues the
+     same 1.25 ratio. Reserved for the Hub's hero name — the one place on
+     the site with real typographic presence — not a general-purpose size. */
+  --font-size-6: 39px;
+
+  /* Spacing scale */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+
+  /* Motion */
+  --duration-fast: 120ms;
+  --duration-standard: 200ms;
+  --duration-slow: 320ms;
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-decelerate: cubic-bezier(0, 0, 0.2, 1);
+  --ease-accelerate: cubic-bezier(0.4, 0, 1, 1);
+
+  /* Layout */
+  --content-measure: 72ch;
+  --content-measure-wide: 1200px;
+}
+
+/* ---------------------------------------------------------------------
+ * Color Scheme: Warm (default) — base B + orange accent
+ * --------------------------------------------------------------------- */
+
+:root,
+[data-color-scheme='warm'] {
+  --color-bg-base: #2b2420;
+  --color-bg-raised: #362d27;
+  --color-bg-overlay: #47392f;
+  --color-text-primary: #f0e1c5;
+  --color-text-secondary: #d9c7a8;
+  --color-text-muted: #b7a488;
+  --color-border: #5a4a3a;
+
+  /* Pastel-softened 2026-07-19 Identity & Polish pass (soft-2: +6 lightness,
+     -12 saturation, hue held). */
+  --color-accent: #d89882;
+  --color-accent-hover: #e3aa96;
+  --color-accent-subtle: #3c302a;
+  --color-focus-ring: #f2ab8e;
+  /* Muted-accent text tone: accent blended 70/30 toward --color-bg-base —
+     the exact math CSS `opacity: 0.7` produces against that background.
+     ~3.3:1 against base, below the 4.5:1 body-text gate by design — for
+     quiet section-marker labels only, not body-readable text. */
+  --color-accent-muted: #a47565;
+}
+
+/* ---------------------------------------------------------------------
+ * Color Scheme: Cool — base C + blue accent
+ * --------------------------------------------------------------------- */
+
+[data-color-scheme='cool'] {
+  --color-bg-base: #262624;
+  --color-bg-raised: #2e2d2a;
+  --color-bg-overlay: #3a3835;
+  --color-text-primary: #e8e6e1;
+  --color-text-secondary: #c9c6bf;
+  --color-text-muted: #9d9a93;
+  --color-border: #46443f;
+
+  --color-accent: #7eabd4;
+  --color-accent-hover: #99bddd;
+  --color-accent-subtle: #333232;
+  --color-focus-ring: #8fc1ea;
+  --color-accent-muted: #65839e;
+}
+
+
+
+/* ---------------------------------------------------------------------
+ * Mono usage: ligatures off by default.
+ * --------------------------------------------------------------------- */
+
+code,
+kbd,
+pre,
+samp {
+  font-family: var(--font-family-mono);
+  font-variant-ligatures: none;
+}

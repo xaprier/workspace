@@ -1,0 +1,74 @@
+---
+// Identity & Polish nav pass: a registry-backed technology reference —
+// icon (when the registry has one) + name, linking to the technology's
+// official site. Reuses Contact Links' icon+text link vocabulary (muted
+// at rest, accent on hover/focus-visible, shared focus-ring) inside the
+// existing tech-chip pill shape, so a registered technology reads as the
+// same chip everywhere on the site, just interactive and icon-bearing.
+import { technologies } from '../data/technologies';
+
+interface Props {
+  slug: string;
+}
+
+const { slug } = Astro.props;
+const tech = technologies[slug];
+---
+
+{
+  tech && (
+    <a class="tech-badge" href={tech.url} target="_blank" rel="noopener noreferrer">
+      {tech.icon && (
+        <svg
+          class="tech-badge-icon"
+          viewBox={tech.icon.viewBox}
+          width="14"
+          height="14"
+          aria-hidden="true"
+        >
+          <path fill="currentColor" fill-rule={tech.icon.fillRule} d={tech.icon.path} />
+        </svg>
+      )}
+      <span>{tech.name}</span>
+    </a>
+  )
+}
+
+<style>
+  /* Accent dosing: muted at rest, accent on hover/focus only — not a
+     standing accent. A technology badge repeats many times per section
+     (Tech Stack, Workbench, narrative sidebars); standing accent on
+     every instance would over-saturate the page against the system's
+    "accent is a deliberate, measured touch" rule (the
+    Hub Accent dosing section, which reserves standing accent for the
+     one or two highest-emphasis actionable elements per section). */
+  .tech-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    border: 1px solid var(--color-border);
+    border-radius: 2px;
+    padding: 2px var(--space-2);
+    font-size: var(--font-size-1);
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    transition:
+      color var(--duration-fast) var(--ease-standard),
+      border-color var(--duration-fast) var(--ease-standard);
+  }
+
+  .tech-badge:hover,
+  .tech-badge:focus-visible {
+    color: var(--color-accent);
+    border-color: var(--color-accent);
+  }
+
+  .tech-badge:focus-visible {
+    outline: 2px solid var(--color-focus-ring);
+    outline-offset: 2px;
+  }
+
+  .tech-badge-icon {
+    flex-shrink: 0;
+  }
+</style>

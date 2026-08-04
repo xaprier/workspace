@@ -1,0 +1,101 @@
+---
+import { getCollection } from 'astro:content';
+import Shell from '../../layouts/Shell.astro';
+import ProjectsPageIsland from '../../components/ProjectsPageIsland.svelte';
+import SearchIsland from '../../components/SearchIsland.svelte';
+import ProjectDetailsDialog from '../../components/ProjectDetailsDialog.svelte';
+import { isActiveStatus } from '../../lib/projectStatus';
+import { fetchGithubDataForProjects } from '../../lib/githubData';
+
+const projects = await getCollection('projects');
+
+const narratives = projects
+  .filter((project) => project.data.tier === 'narrative')
+  .sort((a, b) => {
+    if (a.data.pinned !== b.data.pinned) return a.data.pinned ? -1 : 1;
+    return b.data.updatedAt.valueOf() - a.data.updatedAt.valueOf();
+  });
+
+const indexEntries = projects
+  .filter((project) => project.data.tier === 'index')
+  .sort((a, b) => b.data.updatedAt.valueOf() - a.data.updatedAt.valueOf());
+
+const githubData = await fetchGithubDataForProjects(
+  indexEntries
+    .filter((project) => project.data.outboundLink?.kind === 'github')
+    .map((project) => ({ id: project.id, url: project.data.outboundLink!.url })),
+);
+
+const dateLabel = (date: Date) =>
+  date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+
+const githubAsOfLabel = dateLabel(new Date());
+
+const serializedNarratives = narratives.map((p) => ({
+  slug: p.id,
+  title: p.data.title,
+  description: p.data.description,
+  technologies: p.data.technologies,
+  pinned: p.data.pinned ?? false,
+  status: isActiveStatus(p.data.status) ? p.data.status : undefined,
+  updatedAt: p.data.updatedAt.toISOString(),
+}));
+
+const serializedIndexEntries = indexEntries.map((p) => {
+  const github = githubData.get(p.id);
+  return {
+    slug: p.id,
+    title: p.data.title,
+    description: p.data.description,
+    technologies: p.data.technologies,
+    status: isActiveStatus(p.data.status) ? p.data.status : undefined,
+    outboundLink: p.data.outboundLink!,
+    github: github
+      ? {
+          stars: github.stars.toLocaleString('en-US'),
+          language: github.language,
+          pushedAtLabel: dateLabel(new Date(github.pushedAt)),
+        }
+      : null,
+  };
+});
+
+const dialogProjects = indexEntries.map((project) => {
+  const github = githubData.get(project.id);
+  return {
+    slug: project.id,
+    title: project.data.title,
+    description: project.data.description,
+    technologies: project.data.technologies,
+    outboundLink: project.data.outboundLink!,
+    github: github
+      ? {
+          stars: github.stars.toLocaleString('en-US'),
+          language: github.language,
+          pushedAtLabel: dateLabel(new Date(github.pushedAt)),
+        }
+      : null,
+  };
+});
+---
+
+<Shell title="Projects" wide>
+  <div class="page-content" data-pagefind-filter="surface:projects">
+    <SearchIsland surface="projects" client:load />
+
+    <ProjectsPageIsland
+      client:load
+      narratives={serializedNarratives}
+      indexEntries={serializedIndexEntries}
+    />
+
+    <ProjectDetailsDialog client:load projects={dialogProjects} asOfLabel={githubAsOfLabel} />
+  </div>
+</Shell>
+
+<style>
+  .page-content.search-active :global(.narratives-section),
+  .page-content.search-active :global(.index-entries) {
+    display: none;
+  }
+</style>

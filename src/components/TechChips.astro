@@ -1,0 +1,51 @@
+---
+// Identity & Polish nav pass: renders a TechBadge (icon + link) for any
+// entry that resolves to the technology registry, falling back to the
+// original plain, non-interactive chip for anything unregistered —
+// content never breaks on an unregistered tech. Matching is by slug or
+// display name (findTechnologySlug), so existing frontmatter written as
+// free text ("TypeScript", "Node.js") upgrades automatically without
+// needing to be rewritten to slug form.
+import { findTechnologySlug } from '../data/technologies';
+import TechBadge from './TechBadge.astro';
+
+interface Props {
+  technologies?: string[];
+}
+
+const { technologies } = Astro.props;
+---
+
+{
+  technologies && technologies.length > 0 && (
+    <ul class="tech-chips">
+      {technologies.map((tech) => {
+        const slug = findTechnologySlug(tech);
+        return <li>{slug ? <TechBadge slug={slug} /> : <span class="tech-chip">{tech}</span>}</li>;
+      })}
+    </ul>
+  )
+}
+
+<style>
+  .tech-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .tech-chips li {
+    display: flex;
+  }
+
+  .tech-chip {
+    border: 1px solid var(--color-border);
+    border-radius: 2px;
+    padding: 2px var(--space-2);
+    font-size: var(--font-size-1);
+    color: var(--color-text-secondary);
+  }
+</style>

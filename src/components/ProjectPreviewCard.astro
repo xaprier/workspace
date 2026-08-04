@@ -1,0 +1,88 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import TechChips from './TechChips.astro';
+import { withBase } from '../lib/withBase';
+
+interface Props {
+  project: CollectionEntry<'projects'>;
+}
+
+const { project } = Astro.props;
+
+const updatedAtLabel = project.data.updatedAt.toLocaleDateString('en-US', {
+  year: 'numeric',
+  month: 'short',
+  day: 'numeric',
+});
+---
+
+<article class:list={['preview-card', { pinned: project.data.pinned }]}>
+  <h3>
+    <a href={withBase(`/projects/${project.id}`)}>{project.data.title}</a>
+  </h3>
+  <p class="preview-description">{project.data.description}</p>
+  <TechChips technologies={project.data.technologies} />
+  <p class="preview-updated">Updated {updatedAtLabel}</p>
+</article>
+
+<style>
+  .preview-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    background: var(--color-bg-raised);
+    padding: var(--space-4);
+    border: 1px solid transparent;
+    transition:
+      border-color var(--duration-fast) var(--ease-standard),
+      transform var(--duration-fast) var(--ease-standard);
+  }
+
+  .preview-card:hover,
+  .preview-card:focus-within {
+    border-color: var(--color-accent);
+    transform: translateY(-2px);
+  }
+
+  .preview-card.pinned {
+    border-left: 3px solid var(--color-accent);
+  }
+
+  .preview-card h3 {
+    margin: 0;
+    font-size: var(--font-size-3);
+  }
+
+  .preview-card h3 a {
+    text-decoration: none;
+    color: var(--color-text-primary);
+    transition: color var(--duration-fast) var(--ease-standard);
+  }
+
+  .preview-card h3 a:hover,
+  .preview-card h3 a:focus-visible {
+    color: var(--color-accent);
+  }
+
+  .preview-card h3 a:focus-visible {
+    outline: 2px solid var(--color-focus-ring);
+    outline-offset: 2px;
+  }
+
+  .preview-description {
+    margin: 0;
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-1);
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .preview-updated {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-1);
+    font-family: var(--font-family-mono);
+  }
+</style>
