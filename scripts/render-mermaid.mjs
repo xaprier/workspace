@@ -166,7 +166,16 @@ async function renderVariant(source, themeVariables) {
     .use(rehypeMermaid, {
       strategy: 'inline-svg',
       css: mermaidFontCssDataUri,
-      mermaidConfig: { theme: 'base', themeVariables },
+      // htmlLabels: false (root-level — flowchart.htmlLabels is deprecated
+      // and only affected edge labels, not node labels) — labels render as
+      // plain SVG <text>/<tspan> instead of a fixed-width foreignObject
+      // <div>. With HTML labels, Mermaid sizes that fixed width before the
+      // custom variable font's real glyph metrics are settled; if the
+      // actual rendered text comes out even slightly wider, the
+      // foreignObject's implicit overflow clipping crops the last
+      // character(s) — reproduces intermittently (font-metrics timing, not
+      // the diagram source). SVG text has no such fixed-width clip box.
+      mermaidConfig: { theme: 'base', themeVariables, htmlLabels: false },
     })
     .use(rehypeStringify);
 
