@@ -43,7 +43,8 @@ export const DEFAULT_SCHEME = 'warm';
  * falls back to DEFAULT_SCHEME's variant in that case).
  * @type {Scheme[]}
  */
-export const MERMAID_DIAGRAM_SCHEMES = ['warm', 'cool'];
+//export const MERMAID_DIAGRAM_SCHEMES = ['warm', 'cool'];
+export const MERMAID_DIAGRAM_SCHEMES = ENABLED_SCHEMES;
 
 if (ENABLED_SCHEMES.length === 0) {
   throw new Error('theme.config.mjs: ENABLED_SCHEMES must not be empty.');
