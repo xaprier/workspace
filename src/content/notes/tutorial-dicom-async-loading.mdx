@@ -15,12 +15,12 @@ loader in the realtime medical imaging system and XQMprViewer.
 ## 1. Design the two-phase loading model
 
 DICOM directories can contain multiple series (different scan types, different
-sequences). Loading everything upfront is wasteful — the user usually wants
+sequences). Loading everything upfront is wasteful; the user usually wants
 one series. The pattern splits loading into two phases:
 
-- **Scan directory** — enumerate all series, extract metadata (description,
+- **Scan directory**: enumerate all series, extract metadata (description,
   instance UID, file count), return a list for the UI to present.
-- **Load series** — given a series index, read the files and return a
+- **Load series**: given a series index, read the files and return a
   `vtkImageData` volume.
 
 Each phase runs on its own temporary thread. The controller owns the VTK
@@ -63,7 +63,7 @@ private:
 ## 3. Run the work on a background thread
 
 Use `QThread::create` (Qt 5.10+) with a lambda that captures the controller's
-state by value. No custom `QObject` subclass, no `moveToThread` — just a
+state by value. No custom `QObject` subclass, no `moveToThread`, just a
 lambda and the VTK objects it needs:
 
 ```cpp
@@ -95,7 +95,7 @@ void DicomController::_run() {
 ```
 
 The `finished` handler nulls out `m_workerThread` only if the finished thread
-is still the current one — if a second load request arrived before the first
+is still the current one. If a second load request arrived before the first
 finished, the first thread is still deleted, but `m_workerThread` already
 points to the second one.
 
@@ -104,7 +104,7 @@ points to the second one.
 VTK objects (`vtkSmartPointer`, `vtkImageData`) are not thread-safe for
 concurrent access, but passing ownership across threads is safe as long as
 only one thread touches the object at a time. The delivery mechanism is
-`QMetaObject::invokeMethod` with `Qt::QueuedConnection` — it serializes the
+`QMetaObject::invokeMethod` with `Qt::QueuedConnection`, which serializes the
 lambda through the receiver's event loop, which runs on the main thread:
 
 ```cpp
@@ -130,12 +130,12 @@ QMetaObject::invokeMethod(
 
 `QMetaObject::invokeMethod` is preferred over direct signal/slot connections
 across threads here because the controller itself isn't moved to a different
-thread — it stays on the main thread, and the invocation mechanism handles
+thread. It stays on the main thread, and the invocation mechanism handles
 the thread boundary explicitly. The lambda captures `reader` and `imageData`
 by value (smart pointer copies), transferring ownership to the main thread
 without races.
 
-## 5. The scan phase — enumerate series metadata
+## 5. The scan phase: enumerate series metadata
 
 The scan phase uses `vtkDICOMDirectory` to discover series and extract
 metadata. Results are delivered back to the main thread the same way:
@@ -182,7 +182,7 @@ QMetaObject::invokeMethod(
 ```
 
 When only one series exists, `LoadSeries(0)` fires automatically via
-`QTimer::singleShot(0, ...)` — deferred to the next event loop iteration so
+`QTimer::singleShot(0, ...)`, deferred to the next event loop iteration so
 the signal handlers from `SeriesListReady` have connected first.
 
 ## Common pitfalls
@@ -202,4 +202,4 @@ the signal handlers from `SeriesListReady` have connected first.
   no benefit.
 - **Sorting is implicit.** `vtkDICOMDirectory` returns files sorted by
   instance number. You don't need to sort alphabetically and hope the
-  naming convention holds — VTK handles the DICOM tag-based ordering.
+  naming convention holds. VTK handles the DICOM tag-based ordering.

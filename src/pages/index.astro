@@ -57,7 +57,7 @@ const hubSections = [
 ];
 ---
 
-<Shell title="Hub" wide>
+<Shell wide>
   <div class="hub-layout">
     <aside class="hub-toc-rail" aria-label="Page navigation">
       <TableOfContents client:load sections={hubSections} />
@@ -149,9 +149,9 @@ const hubSections = [
            be real infrastructure for a single static line; re-verify by hand
            if the island set changes materially (last verified after adding
            the base-path helper and the Project Details Dialog island — the
-           original ~25 KB predates both). */
+           original ~58 KB predates both). */
       }
-      <p class="perf-line">No tracking. No analytics. ~58 KB JS.</p>
+      <p class="perf-line">~58 KB JS.</p>
     </div>
   </div>
 
@@ -161,8 +161,8 @@ const hubSections = [
 <style>
   /* Hub TOC session: the Hub becomes a long multi-section page, so it
      adopts the same wide-grid/sticky-rail shape as the narrative and
-     Notes detail routes rather than
-     a bespoke layout — 200px rail, content column capped at the same
+     Notes detail routes rather than a bespoke layout — 200px rail,
+     content column capped at the same
      --content-measure prose width as before this change, Shell widened
      to `wide` only to give the rail room to sit beside that column. */
   .hub-layout {

@@ -1,21 +1,52 @@
 ---
 import { withBase } from '../lib/withBase';
+import { ENABLED_SCHEMES, DEFAULT_SCHEME } from '../theme.config.mjs';
+import type { Scheme } from '../lib/colorScheme';
 
 interface Props {
-  warm: string;
-  cool: string;
+  variants: Partial<Record<Scheme, string>>;
   alt: string;
 }
 
-const { warm, cool, alt } = Astro.props;
+const { variants, alt } = Astro.props;
+
+const presentSchemes = Object.keys(variants) as Scheme[];
+// A scheme can be selectable (ENABLED_SCHEMES) without a
+// rendered diagram existing for it yet — fall back to DEFAULT_SCHEME's
+// variant (or the first available one, if even that's missing).
+const fallbackScheme = presentSchemes.includes(DEFAULT_SCHEME as Scheme)
+  ? (DEFAULT_SCHEME as Scheme)
+  : presentSchemes[0];
+const missingSchemes = (ENABLED_SCHEMES as Scheme[]).filter(
+  (scheme) => !presentSchemes.includes(scheme),
+);
+
+// Scoped <style> blocks can't take dynamic selectors (only CSS custom
+// property values via define:vars), and which schemes are "present" vs.
+// "missing" differs per diagram instance — so the toggle rules are built
+// here and injected with set:html instead.
+const toggleRules = [
+  ...presentSchemes.map(
+    (scheme) =>
+      `[data-color-scheme='${scheme}'] .arch-diagram-slot[data-scheme='${scheme}']{display:block}`,
+  ),
+  ...missingSchemes.map(
+    (scheme) =>
+      `[data-color-scheme='${scheme}'] .arch-diagram-slot[data-scheme='${fallbackScheme}']{display:block}`,
+  ),
+  // No-JS / pre-hydration safety net: Shell.astro's inline script always
+  // sets data-color-scheme before paint, so this is normally unreachable.
+  `:root:not([data-color-scheme]) .arch-diagram-slot[data-scheme='${fallbackScheme}']{display:block}`,
+].join('\n');
 ---
 
-<span class="arch-diagram-slot arch-diagram-slot-warm">
-  <img src={withBase(warm)} alt={alt} class="arch-diagram" />
-</span>
-<span class="arch-diagram-slot arch-diagram-slot-cool">
-  <img src={withBase(cool)} alt={alt} class="arch-diagram" />
-</span>
+{
+  presentSchemes.map((scheme) => (
+    <span class="arch-diagram-slot" data-scheme={scheme}>
+      <img src={withBase(variants[scheme]!)} alt={alt} class="arch-diagram" />
+    </span>
+  ))
+}
 
 <style>
   /* Toggled on the wrapper <span>, not the <img> itself: ReadingLayout's
@@ -24,15 +55,9 @@ const { warm, cool, alt } = Astro.props;
      that war and both diagrams render regardless of data-color-scheme.
      A hidden ancestor still hides its children unconditionally, sidestepping
      the specificity conflict rather than trying to out-rank it. */
-  :global(.arch-diagram-slot-cool) {
+  :global(.arch-diagram-slot) {
     display: none;
-  }
-
-  :global([data-color-scheme='cool'] .arch-diagram-slot-warm) {
-    display: none;
-  }
-
-  :global([data-color-scheme='cool'] .arch-diagram-slot-cool) {
-    display: block;
   }
 </style>
+
+<style set:html={toggleRules} />

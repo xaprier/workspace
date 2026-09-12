@@ -212,8 +212,8 @@ const hasMetaSidebar = Astro.slots.has('meta-sidebar');
     margin-bottom: 0;
   }
 
-  /* Diagram framing: border,
-     bg-raised backdrop, max-width, vertical margin — identical treatment
+  /* Diagram framing: border, bg-raised backdrop, max-width, vertical
+     margin — identical treatment
      for a static image and a build-time-rendered Mermaid <svg> (rehype-
      mermaid's inline-svg strategy emits a bare <svg>, not an <img>). */
   .detail-body :global(img),

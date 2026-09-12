@@ -152,7 +152,7 @@
      the same visual device as the pinned-card/blockquote accent stripe,
      disambiguated by time domain rather than dropped: that stripe is
      persistent (a standing state), this one is transient (appears only
-    while hovered/focused, gone otherwise).
+     while hovered/focused, gone otherwise).
      The inset box-shadow (not a real border) avoids any layout shift on
      appearance, and the reduced-motion policy (Motion Tokens) collapses
      its transition to instant — it appears, it doesn't slide in. */
@@ -200,9 +200,8 @@
   }
 
   /* Quieter dosage than the detail header's standing-accent treatment —
-     muted until hover, matching the stream's overall quiet register (see
-    Linked Project reference — one pattern, two dosage
-    levels). */
+     muted until hover, matching the stream's overall quiet register (one
+     pattern, two dosage levels). */
   .entry-linked-project a {
     color: var(--color-text-muted);
     text-decoration: none;

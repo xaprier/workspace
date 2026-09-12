@@ -1,5 +1,5 @@
 ---
-title: "VTK Frame Timing on Jetson — Read from vtkRenderWindow, Not the Pipeline"
+title: "VTK Frame Timing on Jetson: Read from vtkRenderWindow, Not the Pipeline"
 type: quick-note
 createdAt: 2026-05-12
 updatedAt: 2026-05-12
@@ -8,12 +8,12 @@ updatedAt: 2026-05-12
 When profiling render performance on Jetson, `vtkRenderWindow::GetActualTimeStamp()`
 gives wall-clock frame time more reliably than trying to instrument the
 pipeline with `vtkPipelineMonitor` or timing individual actors. The pipeline
-timer counts CPU-side work only — it misses the GPU sync stall that shows up
+timer counts CPU-side work only. It misses the GPU sync stall that shows up
 as dropped frames on embedded hardware with shared CPU/GPU memory.
 
 One catch: `GetActualTimeStamp()` returns microseconds since some platform-
 specific epoch, not a duration between frames. You need to snapshot it at the
 end of each render and diff manually. Pair it with `vtkRenderWindow::
 ReportRenderWindowStatistics()` off in debug builds for per-pass breakdowns,
-but leave it off in production — the string formatting cost is non-trivial
+but leave it off in production; the string formatting cost is non-trivial
 on low-power ARM.

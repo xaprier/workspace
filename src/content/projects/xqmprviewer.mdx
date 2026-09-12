@@ -1,6 +1,6 @@
 ---
 title: "XQMprViewer"
-description: "An open-source Qt + VTK multi-planar (MPR) DICOM viewer — a from-scratch foundation for Qt/VTK medical imaging tooling."
+description: "An open-source Qt + VTK multi-planar (MPR) DICOM viewer: a from-scratch foundation for Qt/VTK medical imaging tooling."
 tier: narrative
 pinned: false
 architectureDiagramRequired: true
@@ -20,20 +20,20 @@ import ArchitectureDiagram from '../../components/ArchitectureDiagram.astro';
 
 Working on a production Qt + VTK medical imaging system taught me
 two things the hard way. First: code written under delivery
-pressure accrues debt fast — the system worked, but its structure
+pressure accrues debt fast: the system worked, but its structure
 made every new feature more expensive than the last. Second: there
-was a performance question we tried and failed to answer back then
-— rendering each viewport on its own thread. Every
+was a performance question we tried and failed to answer back then,
+rendering each viewport on its own thread. Every
 `vtkRenderWindow` on a separate thread sounds like an obvious win
 on multi-core hardware, but OpenGL's context model disagrees: off
-the main thread, the pipeline breaks down — and no reliable path
+the main thread, the pipeline breaks down, and no reliable path
 around it exists, not in VTK's own machinery and not in any
 community solution I could find, despite extensive searching
 across GitHub, Stack Overflow, and the VTK forums, then and since.
 
 XQMprViewer exists to answer what that experience left open: what
 does a clean, modular foundation for Qt + VTK medical tooling look
-like — and since per-thread rendering is off the table, what do
+like, and since per-thread rendering is off the table, what do
 the rendering topologies you *can* choose actually cost?
 
 ## Approach
@@ -51,23 +51,25 @@ draggable sphere annotation across all three planes, with runtime
 layout switching and per-pane plane assignment.
 
 The threading question lives on as the project's core experiment:
-the viewer implements two rendering topologies — a viewport mode
+the viewer implements two rendering topologies: a viewport mode
 (multiple viewports over a single `vtkRenderWindow`) and a
-multi-window mode (separate render windows) — with live FPS and
+multi-window mode (separate render windows), with live FPS and
 frame-delay readouts exposing what each topology costs. The same
 application, two architectures, measurable side by side.
 
 ## Architecture
 
 The two rendering topologies share the same `IView`/controller
-architecture, not a common rendering library — `MainWindow` selects a
+architecture, not a common rendering library. `MainWindow` selects a
 mode, each mode gets its own `IView`-based view bound to its own
 controller, and only `ViewportController` owns the `XQVtkViewport`
 library; `DicomController` and `SphereController` serve both paths.
 
 <ArchitectureDiagram
-  warm="/projects/xqmprviewer-architecture-warm.svg"
-  cool="/projects/xqmprviewer-architecture-cool.svg"
+  variants={{
+    warm: "/projects/xqmprviewer-architecture-warm.svg",
+    cool: "/projects/xqmprviewer-architecture-cool.svg",
+  }}
   alt="Flowchart: MainWindow selects between Viewport Mode and Multi-Window Mode. Viewport Mode's ViewportView binds to ViewportController, which owns the XQVtkViewport library. Multi-Window Mode's MultiWindowView binds to MultiWindowController. Both controllers connect to a shared DicomController, SphereController, and FPS/Frame-Delay Readout."
 />
 
@@ -75,7 +77,7 @@ library; `DicomController` and `SphereController` serve both paths.
 
 Building for comparability constrained the design: both rendering
 modes live behind interfaces clean enough that switching
-topologies doesn't rewrite the application — abstraction effort a
+topologies doesn't rewrite the application, abstraction effort a
 single-mode viewer wouldn't need. And the original goal, true
 multi-threaded rendering, remains deliberately unsolved here:
 rather than fighting OpenGL's threading model with fragile
@@ -85,7 +87,7 @@ design space inside it.
 ## Outcome
 
 An open-source (GPLv3) modular Qt/VTK foundation with published
-Doxygen API documentation — built entirely from scratch, sharing
+Doxygen API documentation, built entirely from scratch, sharing
 no code with the client work it's domain-adjacent to. The
 dual-topology comparison turns a question I once couldn't answer
 under deadline pressure into something measurable, and the

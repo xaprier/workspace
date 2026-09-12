@@ -53,10 +53,18 @@ layout code.
 
 ### Theming
 
-- **One Color Scheme, two presets.** Warm and Cool are the only choices
-  — plain CSS custom properties, no runtime framework tax. The site is
-  dark-only by design. Switchable anytime via the Shell-owned Theme
-  Control, and the choice persists across visits.
+- **One Color Scheme axis, ten presets.** Warm, Cool, Ember, Dusk, Plum,
+  Midnight, Harbor, Cobalt, Noir, and Tropic — plain CSS custom
+  properties, no runtime framework tax. The site is dark-only by design.
+  Switchable anytime via the Shell-owned Theme Control or the Command
+  Palette's Theme group, and the choice persists across visits.
+- **Restricting or re-defaulting the switcher.** Edit `src/theme.config.mjs`:
+  `ENABLED_SCHEMES` is the list of presets exposed in the UI (shrink it
+  to whatever subset you want — everything else in the app derives from
+  this array, no other file needs touching), and `DEFAULT_SCHEME` is the
+  fallback applied on first visit and whenever a stored preference is no
+  longer enabled. `DEFAULT_SCHEME` must be one of `ENABLED_SCHEMES`; the
+  config throws at load time if it isn't.
 
 ### Diagrams
 

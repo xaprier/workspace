@@ -4,7 +4,7 @@
 
   export let initialPath: string;
 
-  // Hub joins as the first entry (2026-07-19 nav revision), replacing
+  // Hub joins as the first entry, replacing
   // the separate site-identity element — see Application Shell Spec's
   // Navigation Mechanic revision.
   const destinations = [
@@ -74,8 +74,8 @@
     background: var(--color-accent);
   }
 
-/* Active state colors dot and label together — one signal, not two
-   independently-toggled ones. */
+  /* Active state colors dot and label together — one signal, not two
+     independently-toggled ones. */
   .switcher-dot.active {
     color: var(--color-accent);
   }

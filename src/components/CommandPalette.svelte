@@ -250,6 +250,7 @@
     {#if themeMatches.length > 0}
       <li class="palette-group-label" role="presentation">Theme</li>
       {#each themeMatches as item, i (item.label)}
+        <!-- svelte-ignore a11y_click_events_have_key_events -- keyboard activation routes through the input's Enter handler (roving aria-activedescendant), not a per-item listener -->
         <li
           role="option"
           id={`palette-option-${i}`}
@@ -273,6 +274,7 @@
       <li class="palette-group-label" role="presentation">Navigate</li>
       {#each navigateMatches as item, i (item.href)}
         {@const globalIndex = themeMatches.length + i}
+        <!-- svelte-ignore a11y_click_events_have_key_events -- keyboard activation routes through the input's Enter handler (roving aria-activedescendant), not a per-item listener -->
         <li
           role="option"
           id={`palette-option-${globalIndex}`}
@@ -297,6 +299,7 @@
       </li>
       {#each results as item, i (item.href)}
         {@const globalIndex = themeMatches.length + navigateMatches.length + i}
+        <!-- svelte-ignore a11y_click_events_have_key_events -- keyboard activation routes through the input's Enter handler (roving aria-activedescendant), not a per-item listener -->
         <li
           role="option"
           id={`palette-option-${globalIndex}`}
@@ -456,28 +459,6 @@
 
   .palette-input:focus {
     border-color: var(--color-accent);
-  }
-
-  .palette-close {
-    flex-shrink: 0;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: var(--space-1);
-    border: none;
-    background: transparent;
-    color: var(--color-text-muted);
-    cursor: pointer;
-    transition: color var(--duration-fast) var(--ease-standard);
-  }
-
-  .palette-close:hover {
-    color: var(--color-accent);
-  }
-
-  .palette-close:focus-visible {
-    outline: 2px solid var(--color-focus-ring);
-    outline-offset: 2px;
   }
 
   .palette-list {

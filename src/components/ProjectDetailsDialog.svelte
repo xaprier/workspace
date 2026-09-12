@@ -207,8 +207,8 @@
     display: flex;
     flex-direction: column;
 
-/* Fade + subtle scale on open, --duration-fast.
-   @starting-style + transition-behavior: allow-discrete
+    /* Fade + subtle scale on open, --duration-fast.
+       @starting-style + transition-behavior: allow-discrete
        is the native-CSS way to animate a dialog's entry across its
        display:none -> top-layer jump, with no JS-driven animation and no
        delayed-close hack needed — only entry is animated, per spec (close
@@ -237,8 +237,8 @@
   }
 
   /* Scrim: bg-base at high opacity via color-mix rather than a dedicated
-     token — flagged as the one consumer so far; worth
-     promoting to a real --color-scrim token if a second dialog needs one. */
+     token — this is the one consumer so far; worth promoting to a real
+     --color-scrim token if a second dialog needs one. */
   .project-dialog::backdrop {
     background: color-mix(in srgb, var(--color-bg-base) 80%, transparent);
     opacity: 0;
@@ -392,8 +392,8 @@
   }
 
   /* Computed data values (stars, language, last-push date) render mono per
-     the mono dosing rule — this is the
-     value half of a label/value pair, not free-text prose. */
+     the mono dosing rule — this is the value half of a label/value pair,
+     not free-text prose. */
   .github-row dd {
     margin: 0;
     font-size: var(--font-size-1);

@@ -1,6 +1,8 @@
 {
   "name": "workspace",
   "private": true,
+  "type": "module",
+  "version": "0.0.1",
   "author": {
     "email": "seymenkalkan@gmail.com",
     "name": "Seymen Kalkan",
@@ -9,8 +11,6 @@
   "repository": {
     "url": "https://github.com/xaprier/workspace"
   },
-  "type": "module",
-  "version": "0.0.1",
   "license": "MIT",
   "engines": {
     "node": ">=22.12.0"

@@ -1,7 +1,9 @@
 import { defineCollection, reference, z } from 'astro:content';
 import { glob } from 'astro/loaders';
 
-// Field naming is directional — proposed here, kept consistent across collections.
+// Field naming is directional — concrete field names are an
+// implementation detail, proposed here and kept consistent across
+// collections.
 
 const projects = defineCollection({
   loader: glob({ pattern: '**/[^_]*.{md,mdx}', base: './src/content/projects' }),
@@ -167,8 +169,8 @@ const framing = defineCollection({
       .optional(),
     // Identity & Polish pass: the Hub's Workbench block — a closed set of
     // labeled entries describing the actual working environment, not a
-    // freeform list (an equipment list, not a terminal
-    // cosplay). Every field optional; the whole object is optional so a
+    // freeform list — an equipment list, not a terminal
+    // cosplay. Every field optional; the whole object is optional so a
     // Framing Statement can exist without one, and the Workbench section
     // is omitted entirely when it's absent (same omission pattern as the
     // other optional Hub preview sections).

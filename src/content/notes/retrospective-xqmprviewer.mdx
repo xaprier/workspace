@@ -1,5 +1,5 @@
 ---
-title: "Retrospective — Building XQMprViewer After Two Years of Production Qt/VTK Work"
+title: "Retrospective: Building XQMprViewer After Two Years of Production Qt/VTK Work"
 type: retrospective
 createdAt: 2026-06-01
 updatedAt: 2026-06-01
@@ -11,7 +11,7 @@ Starting XQMprViewer from a clean slate, after two years inside a
 production medical imaging codebase, meant every architectural decision was
 informed by specific pain I'd already felt. The pImpl isolation on the
 viewport library, the `IView`/controller split, the decision to never let
-Qt or VTK headers leak past the adapter boundary — none of these were
+Qt or VTK headers leak past the adapter boundary, none of these were
 theoretical. They were responses to concrete maintenance costs I'd paid
 repeatedly in the production system, where tangled Qt/VTK dependencies
 made every refactor a cascade of recompilation.
@@ -23,7 +23,7 @@ was the explicit goal, and it held.
 
 ## What was harder than expected
 
-The dual-topology comparison — viewport mode versus multi-window mode —
+The dual-topology comparison (viewport mode versus multi-window mode)
 sounded like a straightforward experiment: same data, two render paths,
 compare FPS. The hard part was making the comparison fair. A single
 `vtkRenderWindow` shared across viewports handles OpenGL context sharing
@@ -36,7 +36,7 @@ The second surprise was how much of the engineering time went into the
 sphere annotation synchronization across planes, not the rendering itself.
 Keeping a draggable point consistent across axial, coronal, and sagittal
 views requires coordinate transforms that assume the volume's origin and
-spacing are exactly right — a DICOM metadata assumption that's correct
+spacing are exactly right, a DICOM metadata assumption that's correct
 in theory and subtly wrong in practice when files come from different
 scanners with different padding conventions.
 
@@ -44,7 +44,7 @@ scanners with different padding conventions.
 
 I would write the DICOM metadata validation layer first, before any
 rendering code. In both XQMprViewer and the production system, the
-majority of hard-to-reproduce bugs traced back to unexpected metadata —
+majority of hard-to-reproduce bugs traced back to unexpected metadata:
 missing `ImagePositionPatient`, inconsistent `PixelSpacing`, slices
 out of order. A dedicated validation pass that rejects or flags bad
 data upfront would have saved more time than any rendering optimization.
@@ -52,6 +52,6 @@ data upfront would have saved more time than any rendering optimization.
 The second thing: I'd commit to a test harness earlier. The project has
 manual visual tests but no automated pipeline for verifying that a
 rendered frame matches expected output. For a medical imaging tool,
-pixel-level regression testing isn't optional — it's the kind of
+pixel-level regression testing isn't optional. It's the kind of
 discipline I'd enforce on a production system but skipped on a personal
 project because "I'll add it later." Later never comes.

@@ -1,6 +1,7 @@
 import { atom } from 'nanostores';
 
-// A transition:persist'd element is never re-rendered by Astro on a soft
+// Seam-resolution rule: a transition:persist'd element is never
+// re-rendered by Astro on a soft
 // navigation — it keeps the exact server-rendered props it had at first
 // paint, frozen, for the life of the page session. Any island living
 // inside that persisted subtree that needs to react to later

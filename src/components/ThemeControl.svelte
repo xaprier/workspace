@@ -8,6 +8,7 @@
   let focused = false;
   let wrapperEl: HTMLDivElement;
   let triggerEl: HTMLButtonElement;
+  let hoverCloseTimeout: ReturnType<typeof setTimeout> | undefined;
 
   $: expanded = hovered || focused || locked;
 
@@ -22,11 +23,15 @@
   }
 
   function handleMouseEnter() {
+    clearTimeout(hoverCloseTimeout);
     hovered = true;
   }
 
   function handleMouseLeave() {
-    hovered = false;
+    clearTimeout(hoverCloseTimeout);
+    hoverCloseTimeout = setTimeout(() => {
+      hovered = false;
+    }, 120);
   }
 
   function handleFocusIn() {
@@ -65,13 +70,16 @@
       window.removeEventListener(SCHEME_CHANGE_EVENT, handleSchemeChange);
       document.removeEventListener('click', handleClickOutside);
       document.removeEventListener('keydown', handleKeydown);
+      clearTimeout(hoverCloseTimeout);
     };
   });
 </script>
 
 <div
   class="theme-control"
-  class:locked
+  class:expanded
+  role="group"
+  aria-label="Color scheme"
   bind:this={wrapperEl}
   on:mouseenter={handleMouseEnter}
   on:mouseleave={handleMouseLeave}
@@ -79,23 +87,27 @@
   on:focusout={handleFocusOut}
 >
   <div class="theme-chips-track">
-    <div class="theme-chips">
+    <ul class="theme-chips" role="listbox" aria-label="Color scheme options">
       {#each SCHEMES as scheme (scheme.value)}
-        <button
-          type="button"
-          class="theme-chip"
-          class:active={current === scheme.value}
-          data-color-scheme={scheme.value}
-          aria-pressed={current === scheme.value}
-          aria-label={scheme.label}
-          tabindex={expanded ? 0 : -1}
-          on:click={() => select(scheme.value)}
-        >
-          <span class="theme-chip-dot" aria-hidden="true"></span>
-          <span class="theme-chip-label">{scheme.label}</span>
-        </button>
+        <li role="presentation">
+          <button
+            type="button"
+            class="theme-chip"
+            class:active={current === scheme.value}
+            data-color-scheme={scheme.value}
+            role="option"
+            aria-pressed={current === scheme.value}
+            aria-selected={current === scheme.value}
+            aria-label={scheme.label}
+            tabindex={expanded ? 0 : -1}
+            on:click={() => select(scheme.value)}
+          >
+            <span class="theme-chip-dot" aria-hidden="true"></span>
+            <span class="theme-chip-label">{scheme.label}</span>
+          </button>
+        </li>
       {/each}
-    </div>
+    </ul>
   </div>
 
   <button
@@ -128,54 +140,53 @@
       border-color var(--duration-fast) var(--ease-standard);
   }
 
-  .theme-control:hover,
-  .theme-control:focus-within,
-  .theme-control.locked {
+  .theme-control.expanded {
     background: var(--color-bg-raised);
     border-color: var(--color-border);
   }
 
   .theme-chips-track {
-    display: grid;
-    grid-template-columns: 0fr;
-    transition: grid-template-columns var(--duration-fast) var(--ease-standard);
-  }
-
-  .theme-control:hover .theme-chips-track,
-  .theme-control:focus-within .theme-chips-track,
-  .theme-control.locked .theme-chips-track {
-    grid-template-columns: 1fr;
-  }
-
-  .theme-chips {
-    overflow: hidden;
-    min-width: 0;
-    display: flex;
-    align-items: center;
-    gap: var(--space-1);
+    position: absolute;
+    top: 100%;
+    right: 0;
+    width: max-content;
+    border-radius: 2px;
+    border: 1px solid var(--color-border);
+    background: var(--color-bg-raised);
     opacity: 0;
-    transform: translateX(6px);
+    transform: translateY(-4px);
+    pointer-events: none;
     transition:
       opacity var(--duration-fast) var(--ease-standard),
       transform var(--duration-fast) var(--ease-standard);
   }
 
-  .theme-control:hover .theme-chips,
-  .theme-control:focus-within .theme-chips,
-  .theme-control.locked .theme-chips {
+  .theme-control.expanded .theme-chips-track {
     opacity: 1;
-    transform: translateX(0);
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+
+  .theme-chips {
+    list-style: none;
+    margin: 0;
+    max-height: min(360px, 60vh);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    padding: var(--space-2);
   }
 
   .theme-chip {
-    display: inline-flex;
+    display: flex;
+    width: 100%;
     align-items: center;
     gap: var(--space-2);
-    padding: var(--space-1) var(--space-2);
+    padding: var(--space-2) var(--space-3);
     border: none;
     background: transparent;
     cursor: pointer;
-    border-radius: 999px;
+    border-radius: 2px;
     white-space: nowrap;
   }
 
@@ -198,7 +209,6 @@
   }
 
   .theme-chip-label {
-    display: none;
     font-size: var(--font-size-1);
     color: var(--color-text-secondary);
   }
@@ -228,51 +238,5 @@
   .theme-trigger:focus-visible {
     outline: 2px solid var(--color-focus-ring);
     outline-offset: 2px;
-  }
-
-  @media (max-width: 959px) {
-    .theme-chips-track {
-      position: absolute;
-      top: calc(100% + 4px);
-      right: 0;
-      display: block;
-      grid-template-columns: none;
-      width: max-content;
-      border-radius: 2px;
-      border: 1px solid var(--color-border);
-      background: var(--color-bg-raised);
-      opacity: 0;
-      transform: translateY(-4px);
-      pointer-events: none;
-      transition:
-        opacity var(--duration-fast) var(--ease-standard),
-        transform var(--duration-fast) var(--ease-standard);
-    }
-
-    .theme-control:hover .theme-chips-track,
-    .theme-control:focus-within .theme-chips-track,
-    .theme-control.locked .theme-chips-track {
-      opacity: 1;
-      transform: translateY(0);
-      pointer-events: auto;
-    }
-
-    .theme-chips {
-      flex-direction: column;
-      align-items: stretch;
-      overflow: visible;
-      padding: var(--space-2);
-      opacity: 1;
-      transform: none;
-    }
-
-    .theme-chip {
-      padding: var(--space-2) var(--space-3);
-      border-radius: 2px;
-    }
-
-    .theme-chip-label {
-      display: inline;
-    }
   }
 </style>

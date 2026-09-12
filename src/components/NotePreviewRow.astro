@@ -35,9 +35,9 @@ const createdAtLabel = note.data.createdAt.toLocaleDateString('en-US', {
 
 <style>
   /* Deliberately no raised card surface (unlike ProjectPreviewCard) — the
-     Notes surface itself never renders Notes as cards, so the Hub preview reuses the same
-     quiet-row language as the stream entry it's drawn from, not the
-     Projects preview's card treatment. */
+     Notes surface itself never renders Notes as cards, so the Hub preview
+     reuses the same quiet-row language as the stream entry it's drawn
+     from, not the Projects preview's card treatment. */
   .note-preview-row {
     display: flex;
     flex-direction: column;
@@ -82,8 +82,7 @@ const createdAtLabel = note.data.createdAt.toLocaleDateString('en-US', {
 
   /* Quieter dosage than the detail header's standing-accent treatment —
      muted until hover, matching this row's overall quiet-row register
-     (see Linked Project reference — one pattern, two
-     dosage levels). */
+     (one pattern, two dosage levels). */
   .note-preview-linked-project a {
     color: var(--color-text-muted);
     text-decoration: none;

@@ -1,5 +1,5 @@
 ---
-title: "Qt Cross-Thread Signal Delivery — Why Direct Connections Don't Do What You Think on Embedded Linux"
+title: "Qt Cross-Thread Signal Delivery: Why Direct Connections Don't Do What You Think on Embedded Linux"
 type: deep-dive
 createdAt: 2026-03-18
 updatedAt: 2026-04-02
@@ -9,7 +9,7 @@ updatedAt: 2026-04-02
 
 A `Qt::DirectConnection` delivers the slot synchronously in the sender's
 thread. For a GUI application on a resource-constrained embedded device, this
-sounds like exactly what you want — no event loop overhead, no queued
+sounds like exactly what you want: no event loop overhead, no queued
 marshalling, just a function call.
 
 The assumption breaks the moment the slot touches anything that Qt's main
@@ -20,7 +20,7 @@ thread owns.
 `QWidget` updates, `QOpenGLContext` operations, and most `QTimer` calls are
 not thread-safe. A `DirectConnection` from a worker thread into a slot that
 calls `QWidget::update()` will execute that call on the worker thread, not
-the main thread — Qt doesn't relocate it, it just calls the function. On
+the main thread. Qt doesn't relocate it, it just calls the function. On
 x86 with strong memory ordering, this often "works" silently, producing
 occasional visual glitches or rare crashes that don't reproduce under
 debugger. On ARM with relaxed ordering, it fails more visibly: corrupted
@@ -33,7 +33,7 @@ where it's safe." It means "call this where the signal was emitted."
 ## The fix that actually holds
 
 For any slot that touches GUI or OpenGL state, use `Qt::QueuedConnection`
-explicitly — or rely on the default when sender and receiver live in
+explicitly, or rely on the default when sender and receiver live in
 different threads with their own event loops. The queued path serializes
 the call through the receiver's event loop, which means the slot executes
 on the receiver's thread, which is where the GUI state lives.
@@ -41,7 +41,7 @@ on the receiver's thread, which is where the GUI state lives.
 The cost is real: one heap allocation per queued call (the `QMetaCallEvent`),
 and the delivery latency of one event loop iteration. On a 60fps render
 loop that's up to ~16ms of added latency. For frame-level synchronization
-in a medical imaging viewer, that matters — but the alternative (undefined
+in a medical imaging viewer, that matters, but the alternative (undefined
 behavior masked as intermittent crashes) matters more.
 
 ## The pattern that emerged

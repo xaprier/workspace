@@ -1,11 +1,13 @@
 /*
  * Workspace design tokens.
  *
- * One user-facing axis, one attribute, on <html>:
- *   data-color-scheme="warm" | "cool" — Warm (default, attribute absent
- *   or "warm") pairs base B with the orange accent; Cool ("cool") pairs
- *   base C with the blue accent. The pair is never set independently —
- *   there is no separate base-palette or accent-theme selector anymore.
+ * One user-facing axis, one attribute, on <html>: data-color-scheme, one
+ * value per preset (see src/lib/colorScheme.ts's SCHEMES list for the
+ * full, current set — ten as of the Multi-Palette Expansion). Warm is
+ * the default (attribute absent or "warm"). Each preset pairs a base
+ * (bg/text/border) with an accent family as one fixed unit — the pair is
+ * never set independently, there is no separate base-palette or
+ * accent-theme selector.
  */
 
 /* ---------------------------------------------------------------------
@@ -113,10 +115,168 @@
   --color-accent-muted: #65839e;
 }
 
+/* ---------------------------------------------------------------------
+ * Color Scheme: Ember — orange accent, blue-gray base
+ * --------------------------------------------------------------------- */
 
+[data-color-scheme='ember'] {
+  --color-bg-base: #222428;
+  --color-bg-raised: #292c32;
+  --color-bg-overlay: #333840;
+  --color-text-primary: #e6e2e2;
+  --color-text-secondary: #cac4c4;
+  --color-text-muted: #a39d9d;
+  --color-border: #3f444e;
+
+  --color-accent: #c99b5e;
+  --color-accent-hover: #d8ae79;
+  --color-accent-subtle: #333334;
+  --color-focus-ring: #e9b167;
+  --color-accent-muted: #97774e;
+}
 
 /* ---------------------------------------------------------------------
- * Mono usage: ligatures off by default.
+ * Color Scheme: Dusk — muted mauve accent, dusky purple-gray base
+ * --------------------------------------------------------------------- */
+
+[data-color-scheme='dusk'] {
+  --color-bg-base: #242427;
+  --color-bg-raised: #2c2b30;
+  --color-bg-overlay: #37353d;
+  --color-text-primary: #dee3e3;
+  --color-text-secondary: #c0c7c6;
+  --color-text-muted: #99a09f;
+  --color-border: #44424b;
+
+  --color-accent: #d98e8e;
+  --color-accent-hover: #e5a5a5;
+  --color-accent-subtle: #363135;
+  --color-focus-ring: #f09999;
+  --color-accent-muted: #a36e6f;
+}
+
+/* ---------------------------------------------------------------------
+ * Color Scheme: Plum — rose accent, deep purple base
+ * --------------------------------------------------------------------- */
+
+[data-color-scheme='plum'] {
+  --color-bg-base: #26202b;
+  --color-bg-raised: #2e2635;
+  --color-bg-overlay: #3a2f43;
+  --color-text-primary: #f2dad9;
+  --color-text-secondary: #dcbbb9;
+  --color-text-muted: #b79492;
+  --color-border: #483a53;
+
+  --color-accent: #d78898;
+  --color-accent-hover: #e3a0ae;
+  --color-accent-subtle: #382c3b;
+  --color-focus-ring: #f093a7;
+  --color-accent-muted: #a26977;
+}
+
+/* ---------------------------------------------------------------------
+ * Color Scheme: Midnight — periwinkle accent, near-black navy base
+ * --------------------------------------------------------------------- */
+
+[data-color-scheme='midnight'] {
+  --color-bg-base: #1e212d;
+  --color-bg-raised: #242837;
+  --color-bg-overlay: #2c3246;
+  --color-text-primary: #dcdeeb;
+  --color-text-secondary: #bfc1d2;
+  --color-text-muted: #989bac;
+  --color-border: #363d57;
+
+  --color-accent: #9996dc;
+  --color-accent-hover: #aeabe7;
+  --color-accent-subtle: #2b2e41;
+  --color-focus-ring: #a4a1f2;
+  --color-accent-muted: #7473a7;
+}
+
+/* ---------------------------------------------------------------------
+ * Color Scheme: Harbor — signal-orange accent, deep teal-navy base
+ * --------------------------------------------------------------------- */
+
+[data-color-scheme='harbor'] {
+  --color-bg-base: #1e272c;
+  --color-bg-raised: #242f36;
+  --color-bg-overlay: #2d3c46;
+  --color-text-primary: #e2e5ea;
+  --color-text-secondary: #c3c7cf;
+  --color-text-muted: #9ca0a8;
+  --color-border: #374a56;
+
+  --color-accent: #d29b78;
+  --color-accent-hover: #deae8f;
+  --color-accent-subtle: #2f363a;
+  --color-focus-ring: #edab80;
+  --color-accent-muted: #9c7861;
+}
+
+/* ---------------------------------------------------------------------
+ * Color Scheme: Cobalt — bright-blue accent, saturated royal-blue base
+ * --------------------------------------------------------------------- */
+
+[data-color-scheme='cobalt'] {
+  --color-bg-base: #1e222d;
+  --color-bg-raised: #242937;
+  --color-bg-overlay: #2c3346;
+  --color-text-primary: #d0e3e8;
+  --color-text-secondary: #b0c6cd;
+  --color-text-muted: #89a0a6;
+  --color-border: #363f57;
+
+  --color-accent: #7da0d4;
+  --color-accent-hover: #95b4e0;
+  --color-accent-subtle: #293040;
+  --color-focus-ring: #88b1ee;
+  --color-accent-muted: #607aa2;
+}
+
+/* ---------------------------------------------------------------------
+ * Color Scheme: Noir — crimson accent, near-black magenta-tinted base
+ * --------------------------------------------------------------------- */
+
+[data-color-scheme='noir'] {
+  --color-bg-base: #2b1f23;
+  --color-bg-raised: #35252a;
+  --color-bg-overlay: #442e34;
+  --color-text-primary: #e3dfdf;
+  --color-text-secondary: #c7c2c2;
+  --color-text-muted: #a09b9b;
+  --color-border: #543940;
+
+  --color-accent: #d7889f;
+  --color-accent-hover: #e3a0b3;
+  --color-accent-subtle: #3f2b31;
+  --color-focus-ring: #f094ae;
+  --color-accent-muted: #a4697a;
+}
+
+/* ---------------------------------------------------------------------
+ * Color Scheme: Tropic — teal/mint accent, berry-dark base
+ * --------------------------------------------------------------------- */
+
+[data-color-scheme='tropic'] {
+  --color-bg-base: #2c1f23;
+  --color-bg-raised: #36252b;
+  --color-bg-overlay: #452e36;
+  --color-text-primary: #d5e7b4;
+  --color-text-secondary: #b7ca96;
+  --color-text-muted: #91a373;
+  --color-border: #553842;
+
+  --color-accent: #3bb195;
+  --color-accent-hover: #3ec7a7;
+  --color-accent-subtle: #362d31;
+  --color-focus-ring: #25e0b4;
+  --color-accent-muted: #368573;
+}
+
+/* ---------------------------------------------------------------------
+ * Mono usage: ligatures off by default
  * --------------------------------------------------------------------- */
 
 code,

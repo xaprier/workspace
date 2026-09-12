@@ -4,8 +4,8 @@
  * per build via GitHub's public REST API — never at request/client time, so
  * shipping this data costs zero client JS.
  *
- * Resilience contract:
- * unauthenticated GitHub REST calls are rate-limited to 60 req/h, which
+ * Resilience contract: unauthenticated GitHub REST calls are rate-limited
+ * to 60 req/h, which
  * comfortably covers this site's handful of index-tier repos, but a build
  * must never fail because GitHub is unreachable or rate-limited — non-
  * essential display data should never be load-bearing. Every failure mode
